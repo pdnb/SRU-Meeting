@@ -1,0 +1,148 @@
+# Local media/data plane for SRU-Conf.
+# Start: docker compose -f infra/docker-compose.yml up -d
+#
+# Official sources:
+#   LiveKit image: https://hub.docker.com/r/livekit/livekit-server
+#   LiveKit local / deploy / ports:
+#     https://docs.livekit.io/transport/self-hosting/local/
+#     https://docs.livekit.io/transport/self-hosting/deployment/
+#     https://docs.livekit.io/transport/self-hosting/ports-firewall/
+#   Compose healthcheck / depends_on:
+#     https://docs.docker.com/reference/compose-file/services/#healthcheck
+#     https://docs.docker.com/compose/how-tos/startup-order/
+#   Redis: https://hub.docker.com/_/redis
+#   Postgres: https://hub.docker.com/_/postgres
+#   MinIO health + compose: https://min.io/docs/minio/linux/operations/monitoring/healthcheck-probe.html
+#     https://github.com/minio/minio/blob/master/docs/orchestration/docker-compose/docker-compose.yaml
+#   coturn: https://hub.docker.com/r/coturn/coturn
+#
+# Credentials below are local-dev only (localhost). Do not reuse in production.
+
+name: sru-conf
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      # Host 6379 is often taken on Windows (Laragon, Memurai, etc.).
+      - "127.0.0.1:6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sru
+      POSTGRES_PASSWORD: sru_local_dev
+      POSTGRES_DB: sru_conf
+    ports:
+      # Host 5432 is often taken on Windows (installer Postgres, Laragon).
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # Official Compose startup-order example uses pg_isready.
+      # https://docs.docker.com/compose/how-tos/startup-order/
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: sru_minio
+      MINIO_ROOT_PASSWORD: sru_minio_local_dev
+    ports:
+      - "127.0.0.1:9000:9000"
+      # Host 9001 is often taken on Windows (Laravel Herd).
+      - "127.0.0.1:9002:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      # Official MinIO Compose example: mc ready local
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  coturn:
+    image: coturn/coturn:4.17
+    restart: unless-stopped
+    # CLI flags from official image docs (no extra config file).
+    # TLS on 5349 is not enabled locally (no certs). Ports are still published
+    # so Windows Docker Desktop / firewall rules match production TURN 3478/5349.
+    command:
+      - "-n"
+      - "--log-file=stdout"
+      - "--listening-port=3478"
+      - "--tls-listening-port=5349"
+      - "--fingerprint"
+      - "--lt-cred-mech"
+      - "--user=sru:sru_turn_local"
+      - "--realm=sru.local"
+      - "--no-cli"
+      - "--no-tls"
+      - "--no-dtls"
+      - "--no-multicast-peers"
+      - "--external-ip=127.0.0.1"
+      - "--min-port=49160"
+      - "--max-port=49200"
+    ports:
+      - "127.0.0.1:3478:3478"
+      - "127.0.0.1:3478:3478/udp"
+      - "127.0.0.1:5349:5349"
+      - "127.0.0.1:5349:5349/udp"
+      - "127.0.0.1:49160-49200:49160-49200/udp"
+    healthcheck:
+      # Official image ships turnutils_stunclient (pgrep is not in the image).
+      test: ["CMD", "turnutils_stunclient", "127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  livekit:
+    image: livekit/livekit-server:v1.13.6
+    restart: unless-stopped
+    # --bind 0.0.0.0: official local tip so the signal port is reachable
+    # outside 127.0.0.1-inside-the-container (Docker port publish).
+    # https://docs.livekit.io/transport/self-hosting/local/
+    command: ["--config", "/etc/livekit.yaml", "--bind", "0.0.0.0"]
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml:ro
+    ports:
+      - "127.0.0.1:7880:7880"
+      - "127.0.0.1:7881:7881"
+      # Official ICE/UDP mux. Do not publish 50000–60000 on Windows Docker
+      # Desktop — WinNAT excludes ports in that range (this host failed at
+      # UDP 53046). Restore the range on Linux/production. See infra/README.md.
+      - "127.0.0.1:7882:7882/udp"
+    depends_on:
+      redis:
+        condition: service_healthy
+      coturn:
+        condition: service_healthy
+    healthcheck:
+      # Official server health is GET / on the HTTP/signal port (200 OK).
+      # https://github.com/livekit/livekit/blob/master/pkg/service/server.go
+      # Image is Alpine (busybox wget).
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:7880/"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+volumes:
+  postgres_data:
+  minio_data:

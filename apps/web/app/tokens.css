@@ -1,0 +1,191 @@
+/*
+  SRU-Conf design tokens. Later pages should reuse these, not invent new values.
+
+  Tailwind v4 theme variables:
+  https://tailwindcss.com/docs/theme
+  Color scheme:
+  https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-color-scheme
+
+  Semantic aliases (--sru-*) swap in dark mode. @theme maps them to utilities
+  (bg-canvas, text-ink, font-sans, text-display, p-page, rounded-sru).
+*/
+
+:root {
+  --sru-font-sans: ui-sans-serif, system-ui, "Leelawadee UI", "Noto Sans Thai",
+    "Segoe UI", sans-serif;
+  --sru-canvas: #f4f4f5;
+  --sru-surface: #fafafa;
+  --sru-ink: #18181b;
+  --sru-muted: #52525b;
+  --sru-line: #d4d4d8;
+  --sru-accent: #0f5c56;
+  --sru-accent-fg: #f4f4f5;
+  --sru-danger: #9f1239;
+  --sru-danger-fg: #fafafa;
+  --sru-space-1: 0.25rem;
+  --sru-space-2: 0.5rem;
+  --sru-space-3: 0.75rem;
+  --sru-space-4: 1rem;
+  --sru-space-6: 1.5rem;
+  --sru-space-8: 2rem;
+  --sru-space-12: 3rem;
+  --sru-space-page: 1.5rem;
+  --sru-space-gutter: 1rem;
+  --sru-text-display: 2.25rem;
+  --sru-text-body: 1rem;
+  --sru-leading-display: 1.2;
+  --sru-leading-body: 1.5;
+  --sru-radius: 0.25rem;
+  --sru-nav-height: 4rem;
+  --sru-z-skip: 20;
+  --sru-z-nav: 10;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sru-canvas: #18181b;
+    --sru-surface: #27272a;
+    --sru-ink: #f4f4f5;
+    --sru-muted: #a1a1aa;
+    --sru-line: #3f3f46;
+    --sru-accent: #0f5c56;
+    --sru-accent-fg: #f4f4f5;
+    --sru-danger: #be123c;
+    --sru-danger-fg: #fafafa;
+  }
+}
+
+@theme {
+  --font-sans: var(--sru-font-sans);
+  --color-canvas: var(--sru-canvas);
+  --color-surface: var(--sru-surface);
+  --color-ink: var(--sru-ink);
+  --color-muted: var(--sru-muted);
+  --color-line: var(--sru-line);
+  --color-accent: var(--sru-accent);
+  --color-accent-fg: var(--sru-accent-fg);
+  --color-danger: var(--sru-danger);
+  --color-danger-fg: var(--sru-danger-fg);
+  --text-display: var(--sru-text-display);
+  --text-display--line-height: var(--sru-leading-display);
+  --text-body: var(--sru-text-body);
+  --text-body--line-height: var(--sru-leading-body);
+  --spacing-page: var(--sru-space-page);
+  --spacing-gutter: var(--sru-space-gutter);
+  --spacing-nav: var(--sru-nav-height);
+  --radius-sru: var(--sru-radius);
+}
+
+.sru-skip {
+  position: absolute;
+  left: var(--sru-space-4);
+  top: var(--sru-space-4);
+  z-index: var(--sru-z-skip);
+  padding: var(--sru-space-2) var(--sru-space-3);
+  background: var(--sru-accent);
+  color: var(--sru-accent-fg);
+  border-radius: var(--sru-radius);
+  transform: translateY(-8rem);
+}
+
+.sru-skip:focus {
+  transform: none;
+}
+
+.sru-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 var(--sru-space-6);
+  background: var(--sru-accent);
+  color: var(--sru-accent-fg);
+  border-radius: var(--sru-radius);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sru-cta:hover {
+  filter: brightness(1.08);
+}
+
+.sru-cta:active {
+  transform: scale(0.98);
+}
+
+.sru-cta:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sru-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 var(--sru-space-6);
+  background: transparent;
+  color: var(--sru-ink);
+  border: 1px solid var(--sru-line);
+  border-radius: var(--sru-radius);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sru-cta-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 var(--sru-space-6);
+  background: var(--sru-danger);
+  color: var(--sru-danger-fg);
+  border: 0;
+  border-radius: var(--sru-radius);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sru-label {
+  font-size: var(--sru-text-body);
+  font-weight: 600;
+  color: var(--sru-ink);
+}
+
+.sru-input {
+  min-height: 2.75rem;
+  padding: 0 var(--sru-space-3);
+  border: 1px solid var(--sru-line);
+  border-radius: var(--sru-radius);
+  background: var(--sru-surface);
+  color: var(--sru-ink);
+  font: inherit;
+}
+
+.sru-error {
+  margin: 0;
+  color: var(--sru-danger);
+  font-size: var(--sru-text-body);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sru-accent);
+  outline-offset: 2px;
+}

@@ -1,0 +1,345 @@
+# OpenAPI 3.0 skeleton for the Phase 1 HTTP surface (rooms, tokens, participants).
+# Required root fields: https://spec.openapis.org/oas/v3.0.3.html#openapi-object
+# Schema names match Task 4 Zod exports in packages/shared/src/*.ts.
+
+openapi: "3.0.3"
+info:
+  title: SRU-Conf API
+  description: >
+    Phase 1 HTTP surface for self-hosted conference rooms, join tokens, and
+    participants. Product handlers land in later tasks. This document is the
+    contract.
+  version: "1.0.0"
+servers:
+  - url: /
+    description: Same origin as the Next.js app
+tags:
+  - name: rooms
+    description: Create, list, read, and close rooms
+  - name: tokens
+    description: Mint a LiveKit access token for a room
+  - name: participants
+    description: List room participants
+paths:
+  /api/v1/rooms:
+    get:
+      tags: [rooms]
+      summary: List rooms the caller may see
+      operationId: listRooms
+      security:
+        - session: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Rooms visible to the session user
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RoomSchema"
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                        minimum: 1
+                      pageSize:
+                        type: integer
+                        minimum: 1
+                      totalItems:
+                        type: integer
+                        minimum: 0
+                      totalPages:
+                        type: integer
+                        minimum: 0
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      tags: [rooms]
+      summary: Create a room
+      operationId: createRoom
+      security:
+        - session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRoomRequestSchema"
+      responses:
+        "201":
+          description: Room created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomSchema"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/rooms/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+    get:
+      tags: [rooms]
+      summary: Get one room
+      operationId: getRoom
+      security:
+        - session: []
+      responses:
+        "200":
+          description: Room found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomSchema"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      tags: [rooms]
+      summary: Close a room
+      operationId: deleteRoom
+      security:
+        - session: []
+      responses:
+        "204":
+          description: Room closed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/rooms/{id}/tokens:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+    post:
+      tags: [tokens]
+      summary: Mint a join token for a room
+      operationId: createRoomToken
+      security:
+        - session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenRequestSchema"
+      responses:
+        "201":
+          description: Token minted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponseSchema"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/rooms/{id}/participants:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+    get:
+      tags: [participants]
+      summary: List participants in a room
+      operationId: listRoomParticipants
+      security:
+        - session: []
+      responses:
+        "200":
+          description: Participants in the room
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RoomParticipantSchema"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: session
+      description: Session cookie issued after local login.
+  parameters:
+    RoomId:
+      name: id
+      in: path
+      required: true
+      description: Room id
+      schema:
+        type: string
+        minLength: 1
+  responses:
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorSchema"
+    Forbidden:
+      description: Authenticated but not allowed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorSchema"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorSchema"
+    UnprocessableEntity:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorSchema"
+    InternalError:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorSchema"
+  schemas:
+    RoomRoleSchema:
+      type: string
+      enum: [host, cohost, participant]
+    LobbyStatusSchema:
+      type: string
+      enum: [pending, admitted, denied]
+    CreateRoomRequestSchema:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+    RoomSchema:
+      type: object
+      required: [id, name, createdAt, ownerId]
+      properties:
+        id:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        createdAt:
+          type: string
+          format: date-time
+        ownerId:
+          type: string
+          minLength: 1
+    RoomParticipantSchema:
+      type: object
+      required: [id, roomId, userId, role, banned, lobbyStatus]
+      properties:
+        id:
+          type: string
+          minLength: 1
+        roomId:
+          type: string
+          minLength: 1
+        userId:
+          type: string
+          minLength: 1
+        role:
+          $ref: "#/components/schemas/RoomRoleSchema"
+        banned:
+          type: boolean
+        lobbyStatus:
+          $ref: "#/components/schemas/LobbyStatusSchema"
+    TokenRequestSchema:
+      type: object
+      required: [roomName, identity]
+      properties:
+        roomName:
+          type: string
+          minLength: 1
+          maxLength: 128
+        identity:
+          type: string
+          minLength: 1
+          maxLength: 128
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+    TokenResponseSchema:
+      type: object
+      required: [token, url]
+      properties:
+        token:
+          type: string
+          minLength: 1
+        url:
+          type: string
+          minLength: 1
+    ApiErrorSchema:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              minLength: 1
+            message:
+              type: string
+              minLength: 1
+            details: {}

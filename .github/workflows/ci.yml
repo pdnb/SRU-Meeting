@@ -1,0 +1,48 @@
+# PR quality gate: lint, typecheck, unit tests.
+# Do not add LiveKit, Compose, or other Docker services — this job is
+# deterministic and must not require the media stack.
+#
+# Sources:
+# - https://docs.github.com/en/actions/how-tos/writing-workflows
+# - https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md
+# - https://pnpm.io/cli/install#--frozen-lockfile
+# - https://github.com/pnpm/action-setup
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      # Prisma generate (postinstall) reads DATABASE_URL from schema.
+      # Dummy URL only — do not migrate or start Postgres in CI.
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.28.0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test

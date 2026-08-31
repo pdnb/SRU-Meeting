@@ -1,0 +1,90 @@
+// Prisma 6 schema for Compose Postgres.
+// Sources:
+// https://www.prisma.io/docs/orm/v6/prisma-schema/overview
+// https://www.prisma.io/docs/orm/v6/prisma-schema/data-model/models
+// https://www.prisma.io/docs/orm/v6/prisma-schema/data-model/relations
+// https://www.prisma.io/docs/orm/v6/prisma-schema/data-model/relations/referential-actions
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoomRole {
+  host
+  cohost
+  participant
+}
+
+enum LobbyStatus {
+  pending
+  admitted
+  denied
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  name             String?
+  passwordHash     String
+  isGuest          Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  ownedRooms       Room[]
+  participations   RoomParticipant[]
+  sentMessages     ChatMessage[]     @relation("ChatSent")
+  receivedMessages ChatMessage[]     @relation("ChatReceived")
+}
+
+model Room {
+  id                  String            @id @default(cuid())
+  name                String
+  createdAt           DateTime          @default(now())
+  ownerId             String
+  owner               User              @relation(fields: [ownerId], references: [id])
+  passwordHash        String?
+  lobbyEnabled        Boolean           @default(false)
+  locked              Boolean           @default(false)
+  finishedAt          DateTime?
+  allowGuests         Boolean           @default(false)
+  signedInOnly        Boolean           @default(true)
+  allowedEmailDomains String[]          @default([])
+  allowScreenShare    Boolean           @default(true)
+  allowChat           Boolean           @default(true)
+  maxParticipants     Int               @default(25)
+  chatRetentionDays   Int?
+  participants        RoomParticipant[]
+  messages            ChatMessage[]
+}
+
+model RoomParticipant {
+  id          String      @id @default(cuid())
+  roomId      String
+  userId      String
+  role        RoomRole
+  banned      Boolean     @default(false)
+  lobbyStatus LobbyStatus
+  room        Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+}
+
+model ChatMessage {
+  id            String   @id @default(cuid())
+  roomId        String
+  senderId      String
+  body          String
+  recipientId   String?
+  attachmentKey String?
+  createdAt     DateTime @default(now())
+  room          Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender        User     @relation("ChatSent", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient     User?    @relation("ChatReceived", fields: [recipientId], references: [id], onDelete: SetNull)
+
+  @@index([roomId, createdAt])
+}

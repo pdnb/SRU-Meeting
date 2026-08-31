@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  background: var(--sru-canvas);
+  color: var(--sru-ink);
+  font-family: var(--sru-font-sans);
+  overflow-x: clip;
+}

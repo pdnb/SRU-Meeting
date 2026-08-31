@@ -1,0 +1,50 @@
+# Local-only LiveKit config. Do not use these keys or node_ip settings in production.
+# Config keys: official sample + deployment guide
+#   https://github.com/livekit/livekit/blob/master/config-sample.yaml
+#   https://docs.livekit.io/transport/self-hosting/deployment/
+# Ports: https://docs.livekit.io/transport/self-hosting/ports-firewall/
+# Local-dev API key/secret: https://docs.livekit.io/transport/self-hosting/local/
+
+port: 7880
+log_level: info
+
+# Docker Desktop cannot use Linux host networking. Bind all interfaces inside
+# the container so published host ports reach the process.
+bind_addresses:
+  - "0.0.0.0"
+
+redis:
+  address: redis:6379
+
+# Key name matches official livekit-server --dev (`devkey`).
+# Secret is 32+ characters (this server version logs an error for shorter secrets).
+# Localhost only — rotate before any shared deploy.
+# https://docs.livekit.io/transport/self-hosting/local/
+keys:
+  devkey: sru_livekit_local_dev_secret_do_not_use
+
+rtc:
+  tcp_port: 7881
+  # Windows Docker Desktop cannot publish UDP 50000–60000: WinNAT/Hyper-V
+  # excluded ranges overlap that block (bind denied on 53046 on this host).
+  # Official mux: when udp_port is set, port_range_start/end are not used.
+  # https://docs.livekit.io/transport/self-hosting/ports-firewall/
+  # https://github.com/livekit/livekit/blob/master/config-sample.yaml
+  udp_port: 7882
+  # Local Docker Desktop: advertise the host loopback, not a cloud public IP.
+  # use_external_ip is for cloud VMs (deployment guide). Leave false here.
+  use_external_ip: false
+  node_ip: 127.0.0.1
+  # Helpful when the SFU runs in a VM / Docker Desktop NAT (config-sample.yaml).
+  enable_loopback_candidate: true
+  # External coturn on this Compose stack (not LiveKit embedded TURN).
+  turn_servers:
+    - host: 127.0.0.1
+      port: 3478
+      protocol: udp
+      username: sru
+      credential: sru_turn_local
+
+# Embedded TURN stays off so published 3478/5349 belong to the coturn service.
+turn:
+  enabled: false
