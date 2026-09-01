@@ -10,7 +10,7 @@ import { useTrackProcessorSupport } from "@/components/meeting/useTrackProcessor
 export function LocalVideoBackgroundSync() {
   const { localParticipant, cameraTrack, isCameraEnabled } =
     useLocalParticipant();
-  const [choice] = useVirtualBackgroundPreference();
+  const { choice } = useVirtualBackgroundPreference();
   const { virtualBackground: supported } = useTrackProcessorSupport();
 
   useEffect(() => {

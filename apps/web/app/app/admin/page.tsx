@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { auth } from "@/lib/auth";
 import { isOrgAdmin } from "@/lib/rbac";
@@ -6,6 +7,7 @@ import { toRoomDto } from "@/lib/rooms";
 import { toRecordingDto } from "@/lib/recording";
 import { getRecordingRetentionDays } from "@/lib/retention";
 import { getOrgAllowsE2eeRooms } from "@/lib/e2ee/org-settings";
+import { listBackgroundPresets } from "@/lib/backgrounds/list";
 import { getScimTokenMeta } from "@/lib/scim";
 import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
 import { AuditLogSchema, UserSchema } from "@sru/shared";
@@ -24,7 +26,12 @@ export default async function AdminPage() {
     );
   }
 
-  const [users, rooms, recordings, audit, retentionDays, allowE2eeRooms, scimMeta] = await Promise.all([
+  const headerList = await headers();
+  const host = headerList.get("x-forwarded-host") ?? headerList.get("host") ?? "localhost:3000";
+  const proto = headerList.get("x-forwarded-proto") ?? "http";
+  const origin = `${proto}://${host}`;
+
+  const [users, rooms, recordings, audit, retentionDays, allowE2eeRooms, scimMeta, backgrounds] = await Promise.all([
     prisma.user.findMany({
       where: { isGuest: false },
       orderBy: { createdAt: "desc" },
@@ -40,6 +47,7 @@ export default async function AdminPage() {
     getRecordingRetentionDays(),
     getOrgAllowsE2eeRooms(),
     getScimTokenMeta(),
+    listBackgroundPresets(origin),
   ]);
 
   return (
@@ -70,6 +78,8 @@ export default async function AdminPage() {
       retentionDays={retentionDays}
       allowE2eeRooms={allowE2eeRooms}
       scimMeta={scimMeta}
+      showBuiltinBackgrounds={backgrounds.showBuiltinBackgrounds}
+      orgBackgroundPresets={backgrounds.org}
     />
   );
 }

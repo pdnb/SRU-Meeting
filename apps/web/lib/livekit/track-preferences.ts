@@ -29,25 +29,33 @@ export const BACKGROUND_PRESETS = [
 export type VirtualBackgroundPresetId =
   (typeof BACKGROUND_PRESETS)[number]["id"];
 
-export type VirtualBackgroundChoice =
+export type PersistedVirtualBackgroundChoice =
   | { type: "none" }
   | { type: "blur" }
-  | { type: "preset"; id: VirtualBackgroundPresetId };
+  | { type: "preset"; id: VirtualBackgroundPresetId }
+  | { type: "org"; id: string };
 
-export const DEFAULT_VIRTUAL_BACKGROUND_CHOICE: VirtualBackgroundChoice = {
-  type: "none",
+export type VirtualBackgroundChoice =
+  | PersistedVirtualBackgroundChoice
+  | { type: "custom"; objectUrl: string };
+
+export const DEFAULT_VIRTUAL_BACKGROUND_CHOICE: PersistedVirtualBackgroundChoice =
+  {
+    type: "none",
+  };
+
+const BLUR_VIRTUAL_BACKGROUND_CHOICE: PersistedVirtualBackgroundChoice = {
+  type: "blur",
 };
-
-const BLUR_VIRTUAL_BACKGROUND_CHOICE: VirtualBackgroundChoice = { type: "blur" };
 
 const presetChoiceCache = new Map<
   VirtualBackgroundPresetId,
-  VirtualBackgroundChoice
+  PersistedVirtualBackgroundChoice
 >();
 
 function presetVirtualBackgroundChoice(
   id: VirtualBackgroundPresetId,
-): VirtualBackgroundChoice {
+): PersistedVirtualBackgroundChoice {
   let cached = presetChoiceCache.get(id);
   if (!cached) {
     cached = { type: "preset", id };
@@ -56,14 +64,23 @@ function presetVirtualBackgroundChoice(
   return cached;
 }
 
+export function isPersistedVirtualBackgroundChoice(
+  choice: VirtualBackgroundChoice,
+): choice is PersistedVirtualBackgroundChoice {
+  return choice.type !== "custom";
+}
+
 export function parseVirtualBackgroundChoice(
   raw: string | null,
-): VirtualBackgroundChoice {
+): PersistedVirtualBackgroundChoice {
   if (!raw) {
     return DEFAULT_VIRTUAL_BACKGROUND_CHOICE;
   }
   try {
     const parsed = JSON.parse(raw) as VirtualBackgroundChoice;
+    if (parsed.type === "custom") {
+      return DEFAULT_VIRTUAL_BACKGROUND_CHOICE;
+    }
     if (parsed.type === "blur") {
       return BLUR_VIRTUAL_BACKGROUND_CHOICE;
     }
@@ -73,13 +90,20 @@ export function parseVirtualBackgroundChoice(
     ) {
       return presetVirtualBackgroundChoice(parsed.id);
     }
+    if (
+      parsed.type === "org" &&
+      typeof parsed.id === "string" &&
+      parsed.id.length > 0
+    ) {
+      return { type: "org", id: parsed.id };
+    }
   } catch {
     // ignore invalid stored values
   }
   return DEFAULT_VIRTUAL_BACKGROUND_CHOICE;
 }
 
-export function readVirtualBackgroundPreference(): VirtualBackgroundChoice {
+export function readVirtualBackgroundPreference(): PersistedVirtualBackgroundChoice {
   if (typeof window === "undefined") {
     return DEFAULT_VIRTUAL_BACKGROUND_CHOICE;
   }
@@ -91,7 +115,7 @@ export function readVirtualBackgroundPreference(): VirtualBackgroundChoice {
 export function writeVirtualBackgroundPreference(
   choice: VirtualBackgroundChoice,
 ): void {
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" || choice.type === "custom") {
     return;
   }
   window.localStorage.setItem(
@@ -134,8 +158,17 @@ export function presetImageUrl(path: string): string {
   return new URL(path, window.location.origin).href;
 }
 
+export function orgBackgroundImageUrl(id: string): string {
+  const path = `/api/v1/backgrounds/org/${encodeURIComponent(id)}/image`;
+  if (typeof window === "undefined") {
+    return path;
+  }
+  return new URL(path, window.location.origin).href;
+}
+
 export function virtualBackgroundChoiceLabel(
   choice: VirtualBackgroundChoice,
+  orgLabel?: string,
 ): string {
   if (choice.type === "none") {
     return "None";
@@ -143,8 +176,41 @@ export function virtualBackgroundChoiceLabel(
   if (choice.type === "blur") {
     return "Blur";
   }
+  if (choice.type === "custom") {
+    return "Custom image";
+  }
+  if (choice.type === "org") {
+    return orgLabel ?? "Organization";
+  }
   return (
     BACKGROUND_PRESETS.find((preset) => preset.id === choice.id)?.label ??
     "Preset"
   );
+}
+
+export const MAX_BACKGROUND_IMAGE_BYTES = 5 * 1024 * 1024;
+
+const ALLOWED_BACKGROUND_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+export function assertClientBackgroundImageAllowed(file: {
+  size: number;
+  type: string;
+}): { ok: true } | { ok: false; message: string } {
+  if (file.size > MAX_BACKGROUND_IMAGE_BYTES) {
+    return {
+      ok: false,
+      message: "Background images must be 5 MB or smaller",
+    };
+  }
+  if (!ALLOWED_BACKGROUND_IMAGE_TYPES.has(file.type)) {
+    return {
+      ok: false,
+      message: "Only JPEG, PNG, or WebP images are allowed",
+    };
+  }
+  return { ok: true };
 }

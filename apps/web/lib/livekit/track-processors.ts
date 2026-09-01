@@ -12,6 +12,7 @@ import type { LocalAudioTrack, LocalVideoTrack } from "livekit-client";
 import {
   BACKGROUND_PRESETS,
   DEFAULT_BLUR_RADIUS,
+  orgBackgroundImageUrl,
   presetImageUrl,
   virtualBackgroundBlurAvailable as virtualBackgroundBlurAvailableWhenSupported,
   type VirtualBackgroundChoice,
@@ -21,8 +22,12 @@ export {
   BACKGROUND_PRESETS,
   DEFAULT_BLUR_RADIUS,
   DEFAULT_VIRTUAL_BACKGROUND_CHOICE,
+  MAX_BACKGROUND_IMAGE_BYTES,
   NOISE_SUPPRESSION_STORAGE_KEY,
   VIRTUAL_BACKGROUND_STORAGE_KEY,
+  assertClientBackgroundImageAllowed,
+  isPersistedVirtualBackgroundChoice,
+  orgBackgroundImageUrl,
   parseVirtualBackgroundChoice,
   presetImageUrl,
   readNoiseSuppressionPreference,
@@ -31,6 +36,7 @@ export {
   virtualBackgroundChoiceLabel,
   writeNoiseSuppressionPreference,
   writeVirtualBackgroundPreference,
+  type PersistedVirtualBackgroundChoice,
   type VirtualBackgroundChoice,
   type VirtualBackgroundPresetId,
 } from "@/lib/livekit/track-preferences";
@@ -106,6 +112,20 @@ export async function applyVirtualBackgroundChoice(
     await processor.switchTo({
       mode: "background-blur",
       blurRadius: DEFAULT_BLUR_RADIUS,
+    });
+    return;
+  }
+  if (choice.type === "custom") {
+    await processor.switchTo({
+      mode: "virtual-background",
+      imagePath: choice.objectUrl,
+    });
+    return;
+  }
+  if (choice.type === "org") {
+    await processor.switchTo({
+      mode: "virtual-background",
+      imagePath: orgBackgroundImageUrl(choice.id),
     });
     return;
   }

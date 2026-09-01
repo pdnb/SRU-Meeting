@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   CreateBucketCommand,
+  DeleteObjectCommand,
   HeadBucketCommand,
   PutBucketPolicyCommand,
   PutObjectCommand,
@@ -10,6 +11,10 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getServerEnv, recordingsBucket } from "@/lib/env";
+import {
+  ALLOWED_BACKGROUND_IMAGE_TYPES,
+  MAX_BACKGROUND_IMAGE_BYTES,
+} from "@/lib/backgrounds/constants";
 
 export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 export const SIGNED_URL_EXPIRES_SECONDS = 15 * 60;
@@ -36,6 +41,27 @@ export function assertAttachmentAllowed(file: {
       ok: false,
       code: "FILE_TYPE",
       message: "Only JPEG, PNG, WebP, or PDF files are allowed",
+    };
+  }
+  return { ok: true };
+}
+
+export function assertBackgroundImageAllowed(file: {
+  size: number;
+  type: string;
+}): { ok: true } | { ok: false; code: string; message: string } {
+  if (file.size > MAX_BACKGROUND_IMAGE_BYTES) {
+    return {
+      ok: false,
+      code: "FILE_TOO_LARGE",
+      message: "Background images must be 5 MB or smaller",
+    };
+  }
+  if (!ALLOWED_BACKGROUND_IMAGE_TYPES.has(file.type)) {
+    return {
+      ok: false,
+      code: "FILE_TYPE",
+      message: "Only JPEG, PNG, or WebP images are allowed",
     };
   }
   return { ok: true };
@@ -115,6 +141,47 @@ export async function uploadAttachment(input: {
     }),
   );
   return key;
+}
+
+export async function uploadOrgBackground(input: {
+  filename: string;
+  contentType: string;
+  body: Uint8Array;
+}): Promise<string> {
+  const { client, bucket } = await ensureBucket();
+  const safeName = input.filename.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
+  const key = `org-backgrounds/${crypto.randomUUID()}-${safeName}`;
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: input.body,
+      ContentType: input.contentType,
+    }),
+  );
+  return key;
+}
+
+export async function getOrgBackgroundObject(key: string): Promise<{
+  body: Uint8Array;
+  contentType: string;
+}> {
+  const { client, bucket } = await ensureBucket();
+  const result = await client.send(
+    new GetObjectCommand({ Bucket: bucket, Key: key }),
+  );
+  const bytes = result.Body
+    ? await result.Body.transformToByteArray()
+    : new Uint8Array();
+  return {
+    body: bytes,
+    contentType: result.ContentType ?? "application/octet-stream",
+  };
+}
+
+export async function deleteOrgBackground(key: string): Promise<void> {
+  const { client, bucket } = await ensureBucket();
+  await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
 }
 
 export async function putObject(

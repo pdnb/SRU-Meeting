@@ -76,6 +76,21 @@ describe("virtual background preferences", () => {
     expect(parseVirtualBackgroundChoice('{"type":"preset","id":"unknown"}')).toEqual(
       { type: "none" },
     );
+    writeVirtualBackgroundPreference({ type: "org", id: "org-bg-1" });
+    expect(readVirtualBackgroundPreference()).toEqual({
+      type: "org",
+      id: "org-bg-1",
+    });
+    writeVirtualBackgroundPreference({
+      type: "custom",
+      objectUrl: "blob:http://localhost/abc",
+    });
+    expect(storage.get(VIRTUAL_BACKGROUND_STORAGE_KEY)).toBe(
+      '{"type":"org","id":"org-bg-1"}',
+    );
+    expect(parseVirtualBackgroundChoice('{"type":"custom","objectUrl":"blob:x"}')).toEqual(
+      { type: "none" },
+    );
   });
 
   it("flags low-end devices when an effect is enabled", () => {
@@ -160,6 +175,24 @@ describe("virtual background processor attach", () => {
     expect(processor.switchTo).toHaveBeenLastCalledWith({
       mode: "virtual-background",
       imagePath: "http://localhost/backgrounds/nature.jpg",
+    });
+
+    await applyVirtualBackgroundChoice(
+      { type: "custom", objectUrl: "blob:http://localhost/custom" },
+      processor as never,
+    );
+    expect(processor.switchTo).toHaveBeenLastCalledWith({
+      mode: "virtual-background",
+      imagePath: "blob:http://localhost/custom",
+    });
+
+    await applyVirtualBackgroundChoice(
+      { type: "org", id: "preset-abc" },
+      processor as never,
+    );
+    expect(processor.switchTo).toHaveBeenLastCalledWith({
+      mode: "virtual-background",
+      imagePath: "http://localhost/api/v1/backgrounds/org/preset-abc/image",
     });
   });
 });

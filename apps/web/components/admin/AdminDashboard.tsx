@@ -2,6 +2,7 @@
 
 import type { AuditLog, Recording, Room, User } from "@sru/shared";
 import { useState } from "react";
+import { BackgroundPresetsPanel } from "@/components/admin/BackgroundPresetsPanel";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
 import { E2eeSettingsPanel } from "@/components/admin/E2eeSettingsPanel";
 import { ScimTokenPanel } from "@/components/admin/ScimTokenPanel";
@@ -14,6 +15,8 @@ export function AdminDashboard({
   retentionDays,
   allowE2eeRooms,
   scimMeta,
+  showBuiltinBackgrounds,
+  orgBackgroundPresets,
 }: {
   users: User[];
   rooms: Room[];
@@ -26,6 +29,8 @@ export function AdminDashboard({
     createdAt: string | null;
     lastRotatedAt: string | null;
   };
+  showBuiltinBackgrounds: boolean;
+  orgBackgroundPresets: { id: string; label: string; imageUrl: string }[];
 }) {
   const [days, setDays] = useState(String(retentionDays));
   const [message, setMessage] = useState<string | null>(null);
@@ -108,6 +113,11 @@ export function AdminDashboard({
       <ScimTokenPanel initialMeta={scimMeta} />
 
       <E2eeSettingsPanel initialAllowE2ee={allowE2eeRooms} />
+
+      <BackgroundPresetsPanel
+        initialShowBuiltin={showBuiltinBackgrounds}
+        initialPresets={orgBackgroundPresets}
+      />
 
       <section className="mt-12">
         <h2 className="font-sans text-body font-semibold text-ink">Users</h2>

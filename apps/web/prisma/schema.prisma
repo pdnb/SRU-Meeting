@@ -341,6 +341,14 @@ model OrgSetting {
   value Json
 }
 
+model OrgBackgroundPreset {
+  id         String   @id @default(cuid())
+  label      String
+  storageKey String   @unique
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
 model Poll {
   id          String       @id @default(cuid())
   roomId      String
