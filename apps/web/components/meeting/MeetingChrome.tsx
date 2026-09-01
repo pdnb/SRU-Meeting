@@ -42,6 +42,7 @@ import { StreamBanner } from "@/components/meeting/StreamBanner";
 import { StreamButton } from "@/components/meeting/StreamButton";
 import { ScreenShareButton } from "@/components/meeting/ScreenShareButton";
 import { LocalVideoBackgroundSync } from "@/components/meeting/LocalVideoBackgroundSync";
+import { QosReporter } from "@/components/meeting/QosReporter";
 import { NoiseSuppressionControl } from "@/components/meeting/NoiseSuppressionControl";
 import { VirtualBackgroundControl } from "@/components/meeting/VirtualBackgroundControl";
 import { GridView } from "@/components/meeting/layouts/GridView";
@@ -274,6 +275,7 @@ export function MeetingChrome({
   return (
     <div className="sru-meet">
       <LocalVideoBackgroundSync />
+      <QosReporter roomId={room.id} />
       <RoomAudioRenderer />
       {connection === ConnectionState.Reconnecting ? (
         <p role="status" className="px-page py-2 text-center">

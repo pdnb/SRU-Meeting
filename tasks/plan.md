@@ -168,10 +168,10 @@ Ship order: media polish (60–62) → engagement (63–68) → transcription pl
 - [x] Task 70: Transcript viewer UI
 - [x] Task 71: Transcription worker interface + enqueue hook
 - [x] Task 72: Meeting summary placeholder
-- [ ] Task 73: Metrics rollup schema + nightly job
-- [ ] Task 74: Analytics API
-- [ ] Task 75: Analytics dashboard UI
-- [ ] Task 76: Client QoS stats reporting
+- [x] Task 73: Metrics rollup schema + nightly job
+- [x] Task 74: Analytics API
+- [x] Task 75: Analytics dashboard UI
+- [x] Task 76: Client QoS stats reporting
 - [ ] Task 77: SCIM bearer auth + admin token management
 - [ ] Task 78: SCIM Users endpoints
 - [ ] Task 79: SCIM Groups → orgRole mapping

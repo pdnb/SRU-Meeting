@@ -235,16 +235,18 @@ Automated verification 2026-09-01: Tasks 69–72 marked done; `phase4_transcript
 
 ### Wave 4: Analytics dashboard
 
-- [ ] **Task 73:** Metrics rollup schema + nightly job
-- [ ] **Task 74:** Analytics API
-- [ ] **Task 75:** Analytics dashboard UI
-- [ ] **Task 76:** Client QoS stats reporting
+- [x] **Task 73:** Metrics rollup schema + nightly job
+- [x] **Task 74:** Analytics API
+- [x] **Task 75:** Analytics dashboard UI
+- [x] **Task 76:** Client QoS stats reporting
 
 ### Checkpoint: Analytics (after Tasks 73–76)
 
 - [ ] Rollup job populates metrics
 - [ ] Admin charts and CSV export work
 - [ ] Review with human before SCIM wave
+
+Automated verification 2026-09-01: Tasks 73–76 marked done; `phase4_analytics` migration added; shared + web tests pass; typecheck pass; `next build --turbopack` in `apps/web` if prisma EPERM. Rollup backfills 30 days on first run; admin Analytics tab with CSS bar charts + CSV export; QoS ingest via meeting client ~60s. Human chart/QoS verification still required.
 
 ### Wave 5: SCIM 2.0
 

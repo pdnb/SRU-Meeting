@@ -2,6 +2,7 @@
 
 import type { AuditLog, Recording, Room, User } from "@sru/shared";
 import { useState } from "react";
+import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
 
 export function AdminDashboard({
   users,
@@ -18,6 +19,7 @@ export function AdminDashboard({
 }) {
   const [days, setDays] = useState(String(retentionDays));
   const [message, setMessage] = useState<string | null>(null);
+  const [tab, setTab] = useState<"overview" | "analytics">("overview");
 
   return (
     <main id="app-main" className="mx-auto w-full max-w-5xl flex-1 px-page py-12">
@@ -25,10 +27,33 @@ export function AdminDashboard({
         Administration
       </h1>
       <p className="mt-3 max-w-[50ch] text-body text-muted">
-        Organization users, rooms, recordings, and retention. Moderator actions
-        are also in the audit log.
+        Organization users, rooms, recordings, analytics, and retention.
+        Moderator actions are also in the audit log.
       </p>
 
+      <div className="mt-8 flex gap-2">
+        <button
+          type="button"
+          className={tab === "overview" ? "sru-cta" : "sru-cta-secondary"}
+          onClick={() => setTab("overview")}
+        >
+          Overview
+        </button>
+        <button
+          type="button"
+          className={tab === "analytics" ? "sru-cta" : "sru-cta-secondary"}
+          onClick={() => setTab("analytics")}
+        >
+          Analytics
+        </button>
+      </div>
+
+      {tab === "analytics" ? (
+        <section className="mt-12">
+          <AnalyticsDashboard />
+        </section>
+      ) : (
+        <>
       <section className="mt-12">
         <h2 className="font-sans text-body font-semibold text-ink">Retention</h2>
         <form
@@ -128,6 +153,8 @@ export function AdminDashboard({
           ))}
         </ul>
       </section>
+        </>
+      )}
     </main>
   );
 }

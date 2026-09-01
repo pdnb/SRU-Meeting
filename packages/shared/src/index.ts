@@ -161,3 +161,18 @@ export {
   type MeetingSummary,
   type TranscriptionSegmentInput,
 } from "./transcript";
+
+export {
+  DailyOrgMetricsSchema,
+  AnalyticsTotalsSchema,
+  AnalyticsOverviewSchema,
+  SubmitQosReportRequestSchema,
+  QosReportSchema,
+  RoomQosSummarySchema,
+  type DailyOrgMetrics,
+  type AnalyticsTotals,
+  type AnalyticsOverview,
+  type SubmitQosReportRequest,
+  type QosReport,
+  type RoomQosSummary,
+} from "./analytics";

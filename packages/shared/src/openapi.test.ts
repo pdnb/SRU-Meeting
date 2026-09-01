@@ -103,6 +103,12 @@ const ZOD_SCHEMA_NAMES = new Set([
   "TranscriptSchema",
   "MeetingSummarySchema",
   "TranscriptionSegmentInputSchema",
+  "DailyOrgMetricsSchema",
+  "AnalyticsTotalsSchema",
+  "AnalyticsOverviewSchema",
+  "SubmitQosReportRequestSchema",
+  "QosReportSchema",
+  "RoomQosSummarySchema",
 ]);
 
 const REQUIRED_SCHEMA_NAMES = [
