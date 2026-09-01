@@ -6,6 +6,7 @@ import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
 import { MeetingRoom } from "@/components/meeting/MeetingRoom";
 import { Prejoin, type PrejoinResult } from "@/components/meeting/Prejoin";
 import { WaitingRoom } from "@/components/meeting/WaitingRoom";
+import { clearSessionCustomBackground } from "@/components/meeting/useVirtualBackgroundPreference";
 import { peekBreakoutMove, takeBreakoutMove } from "@/lib/breakout-move";
 import "@/app/meeting.css";
 
@@ -43,6 +44,12 @@ export function MeetingSession({
       takeBreakoutMove(room.id);
     }
   }, [move, room.id]);
+
+  useEffect(() => {
+    return () => {
+      clearSessionCustomBackground();
+    };
+  }, []);
 
   const requestToken = useCallback(
     async (result: PrejoinResult) => {
@@ -107,6 +114,7 @@ export function MeetingSession({
     return (
       <WaitingRoom
         roomId={room.id}
+        roomName={room.name}
         onAdmitted={() => {
           if (lastJoin) {
             void requestToken(lastJoin);

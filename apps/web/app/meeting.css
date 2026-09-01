@@ -4,6 +4,8 @@
   z-index: var(--sru-z-panel);
   display: flex;
   flex-direction: column;
+  height: 100dvh;
+  max-height: 100dvh;
   background: var(--sru-meet-canvas);
   color: var(--sru-meet-ink);
 }
@@ -184,7 +186,7 @@
 }
 
 .sru-meet-notice {
-  margin-top: var(--sru-space-4);
+  margin: 0;
   padding: var(--sru-space-3);
   border-radius: var(--sru-radius);
   border: 1px solid color-mix(in srgb, var(--sru-success) 40%, transparent);
@@ -193,9 +195,179 @@
   color: var(--sru-meet-ink);
 }
 
+.sru-meet .sru-input:focus {
+  border-color: var(--sru-meet-speaker);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sru-meet-speaker) 28%, transparent);
+}
+
+.sru-meet-lobby {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(17rem, 22rem);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+  width: 100%;
+  max-width: 68rem;
+  margin-inline: auto;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.sru-meet-lobby-center {
+  grid-template-columns: minmax(0, 24rem);
+  justify-content: center;
+}
+
+.sru-meet-lobby-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.sru-meet-lobby-tile {
+  height: auto;
+  min-height: 12rem;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--sru-radius-lg);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.35);
+}
+
+.sru-meet-lobby-tile video {
+  transform: scaleX(-1);
+}
+
+.sru-meet-lobby-controls {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0.75rem;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.sru-meet-lobby-controls > * {
+  pointer-events: auto;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.45);
+}
+
+.sru-meet-lobby-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.5rem;
+}
+
+.sru-meet-lobby-options > * {
+  flex: 1 1 12rem;
+}
+
+.sru-meet-lobby-options .sru-input {
+  width: 100%;
+  max-width: none;
+}
+
+.sru-meet-lobby-join {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.sru-meet-lobby-join h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.sru-meet-lobby-join form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sru-meet-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  width: 100%;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 1.375rem;
+  background: var(--sru-meet-speaker);
+  color: #041016;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--sru-transition), transform var(--sru-transition);
+}
+
+.sru-meet-cta:hover {
+  background: #00a9d4;
+}
+
+.sru-meet-cta:active {
+  transform: scale(0.98);
+}
+
+.sru-meet-cta:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sru-meet-lobby-wait-mark {
+  display: grid;
+  height: 4.5rem;
+  width: 4.5rem;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--sru-meet-surface-raised);
+  color: var(--sru-meet-speaker);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sru-meet-lobby-wait-mark {
+    animation: sru-meet-lobby-pulse 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes sru-meet-lobby-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.82;
+  }
+}
+
+@media (max-width: 48rem) {
+  .sru-meet-lobby {
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 1.25rem;
+    padding: 1rem 1rem 2rem;
+  }
+}
+
 @media (max-width: 40rem) {
   .sru-meet-sidebar {
     grid-template-columns: 1fr;
+  }
+
+  .sru-breakout-banner {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
   }
 
   .sru-meet-panel {
@@ -235,4 +407,110 @@
   .sru-meet [class*="grid"] {
     transition: none;
   }
+}
+
+.sru-bg-gallery-trigger {
+  display: inline-flex;
+  max-width: 16rem;
+  align-items: center;
+  gap: 0.625rem;
+  border: 1px solid var(--sru-meet-line);
+  border-radius: 0.5rem;
+  background: var(--sru-meet-surface-raised);
+  color: var(--sru-meet-ink);
+  padding: 0.375rem 0.625rem;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.sru-bg-gallery-trigger-thumb {
+  display: grid;
+  height: 2rem;
+  width: 2rem;
+  flex-shrink: 0;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  background: var(--sru-meet-panel);
+}
+
+.sru-bg-gallery-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 55%);
+  padding: 1rem;
+}
+
+.sru-bg-gallery-dialog {
+  width: min(100%, 28rem);
+  max-height: min(85vh, 36rem);
+  overflow: auto;
+  border: 1px solid var(--sru-meet-line);
+  border-radius: 0.75rem;
+  background: var(--sru-meet-surface);
+  padding: 1rem;
+  color: var(--sru-meet-ink);
+}
+
+.sru-bg-gallery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.sru-bg-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.sru-bg-gallery-option {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.375rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  padding: 0.25rem;
+  text-align: center;
+}
+
+.sru-bg-gallery-option[aria-pressed="true"] {
+  border-color: var(--sru-meet-speaker);
+  background: rgb(255 255 255 / 0.04);
+}
+
+.sru-bg-gallery-thumb {
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid var(--sru-meet-line);
+  background: var(--sru-meet-panel);
+}
+
+.sru-bg-gallery-thumb-upload {
+  display: grid;
+  place-items: center;
+  color: var(--sru-meet-muted);
+}
+
+.sru-bg-gallery-thumb-placeholder {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: var(--sru-meet-muted);
+}
+
+.sru-bg-gallery-label {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: var(--sru-meet-muted);
 }
