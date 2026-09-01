@@ -3,6 +3,7 @@
 import type { AuditLog, Recording, Room, User } from "@sru/shared";
 import { useState } from "react";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
+import { ScimTokenPanel } from "@/components/admin/ScimTokenPanel";
 
 export function AdminDashboard({
   users,
@@ -10,12 +11,18 @@ export function AdminDashboard({
   recordings,
   audit,
   retentionDays,
+  scimMeta,
 }: {
   users: User[];
   rooms: Room[];
   recordings: Recording[];
   audit: AuditLog[];
   retentionDays: number;
+  scimMeta: {
+    configured: boolean;
+    createdAt: string | null;
+    lastRotatedAt: string | null;
+  };
 }) {
   const [days, setDays] = useState(String(retentionDays));
   const [message, setMessage] = useState<string | null>(null);
@@ -90,6 +97,8 @@ export function AdminDashboard({
         </form>
         {message ? <p className="mt-3 text-body text-muted">{message}</p> : null}
       </section>
+
+      <ScimTokenPanel initialMeta={scimMeta} />
 
       <section className="mt-12">
         <h2 className="font-sans text-body font-semibold text-ink">Users</h2>

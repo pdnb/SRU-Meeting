@@ -104,6 +104,8 @@ model User {
   ssoProvider      String?
   ssoSubject       String?
   ldapDn           String?
+  externalId       String?             @unique
+  scimGroups       String[]            @default([])
   deletedAt        DateTime?
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { toRoomDto } from "@/lib/rooms";
 import { toRecordingDto } from "@/lib/recording";
 import { getRecordingRetentionDays } from "@/lib/retention";
+import { getScimTokenMeta } from "@/lib/scim";
 import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
 import { AuditLogSchema, UserSchema } from "@sru/shared";
 
@@ -22,7 +23,7 @@ export default async function AdminPage() {
     );
   }
 
-  const [users, rooms, recordings, audit, retentionDays] = await Promise.all([
+  const [users, rooms, recordings, audit, retentionDays, scimMeta] = await Promise.all([
     prisma.user.findMany({
       where: { isGuest: false },
       orderBy: { createdAt: "desc" },
@@ -36,6 +37,7 @@ export default async function AdminPage() {
     }),
     prisma.auditLog.findMany({ orderBy: { createdAt: "desc" }, take: 100 }),
     getRecordingRetentionDays(),
+    getScimTokenMeta(),
   ]);
 
   return (
@@ -64,6 +66,7 @@ export default async function AdminPage() {
         }),
       )}
       retentionDays={retentionDays}
+      scimMeta={scimMeta}
     />
   );
 }

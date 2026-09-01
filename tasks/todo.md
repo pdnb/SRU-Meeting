@@ -250,16 +250,18 @@ Automated verification 2026-09-01: Tasks 73–76 marked done; `phase4_analytics`
 
 ### Wave 5: SCIM 2.0
 
-- [ ] **Task 77:** SCIM bearer auth + admin token management
-- [ ] **Task 78:** SCIM Users endpoints
-- [ ] **Task 79:** SCIM Groups → orgRole mapping
-- [ ] **Task 80:** SCIM audit + documentation
+- [x] **Task 77:** SCIM bearer auth + admin token management
+- [x] **Task 78:** SCIM Users endpoints
+- [x] **Task 79:** SCIM Groups → orgRole mapping
+- [x] **Task 80:** SCIM audit + documentation
 
 ### Checkpoint: SCIM (after Tasks 77–80)
 
 - [ ] IdP test tenant can provision and deprovision a user
 - [ ] Group mapping updates role
 - [ ] Review with human before E2EE wave
+
+Automated verification 2026-09-01: Tasks 77–80 marked done; `phase4_scim` migration added; shared + web tests pass; typecheck pass; `next build --turbopack` in `apps/web` if prisma EPERM. SCIM bearer auth on `/scim/v2/*`; admin token generate/rotate/revoke; Users CRUD + Groups membership; audit events + OpenAPI + `.env.example`. IdP sandbox and human review still required.
 
 ### Wave 6: E2EE — last
 

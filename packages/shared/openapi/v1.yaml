@@ -23,6 +23,8 @@ tags:
     description: Organization administration
   - name: client
     description: In-meeting client telemetry
+  - name: scim
+    description: SCIM 2.0 user and group provisioning (RFC 7643/7644 subset)
 paths:
   /api/v1/rooms:
     get:
@@ -764,6 +766,219 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /scim/v2/Users:
+    get:
+      tags: [scim]
+      summary: List SCIM users
+      description: >
+        Returns active organization users. Supports `filter=userName eq "email@example.com"`.
+        Authenticate with `Authorization: Bearer <scim token>` from the admin SCIM panel.
+      operationId: listScimUsers
+      security:
+        - scimBearer: []
+      parameters:
+        - name: filter
+          in: query
+          required: false
+          schema:
+            type: string
+            example: userName eq "alice@sru.ac.th"
+      responses:
+        "200":
+          description: SCIM ListResponse of Users
+          content:
+            application/scim+json:
+              schema:
+                type: object
+        "401":
+          description: Missing or invalid bearer token
+    post:
+      tags: [scim]
+      summary: Create SCIM user
+      operationId: createScimUser
+      security:
+        - scimBearer: []
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              type: object
+              required: [userName]
+              properties:
+                userName:
+                  type: string
+                  format: email
+                externalId:
+                  type: string
+                name:
+                  type: object
+                  properties:
+                    formatted:
+                      type: string
+                active:
+                  type: boolean
+      responses:
+        "201":
+          description: Created SCIM User
+          content:
+            application/scim+json:
+              schema:
+                type: object
+        "401":
+          description: Missing or invalid bearer token
+        "409":
+          description: User already exists
+  /scim/v2/Users/{id}:
+    get:
+      tags: [scim]
+      summary: Get SCIM user by id
+      operationId: getScimUser
+      security:
+        - scimBearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: SCIM User
+          content:
+            application/scim+json:
+              schema:
+                type: object
+        "401":
+          description: Missing or invalid bearer token
+        "404":
+          description: User not found
+    patch:
+      tags: [scim]
+      summary: Patch SCIM user
+      operationId: patchScimUser
+      security:
+        - scimBearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Updated SCIM User
+        "401":
+          description: Missing or invalid bearer token
+        "404":
+          description: User not found
+    delete:
+      tags: [scim]
+      summary: Deprovision SCIM user
+      description: Tombstones the user via PDPA deletion helper.
+      operationId: deleteScimUser
+      security:
+        - scimBearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: User deprovisioned
+        "401":
+          description: Missing or invalid bearer token
+        "404":
+          description: User not found
+  /scim/v2/Groups:
+    get:
+      tags: [scim]
+      summary: List SCIM groups
+      description: >
+        Flat group list from SCIM_GROUP_ROLE_MAP for the single organization.
+        Unknown groups are not returned.
+      operationId: listScimGroups
+      security:
+        - scimBearer: []
+      responses:
+        "200":
+          description: SCIM ListResponse of Groups
+          content:
+            application/scim+json:
+              schema:
+                type: object
+        "401":
+          description: Missing or invalid bearer token
+  /scim/v2/Groups/{id}:
+    patch:
+      tags: [scim]
+      summary: Patch SCIM group membership
+      description: Adds or removes members; updates orgRole from SCIM_GROUP_ROLE_MAP.
+      operationId: patchScimGroup
+      security:
+        - scimBearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/scim+json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Updated SCIM Group
+        "401":
+          description: Missing or invalid bearer token
+        "404":
+          description: Unknown group
+  /api/v1/admin/scim-token:
+    get:
+      tags: [admin]
+      summary: SCIM bearer token status
+      operationId: getScimTokenMeta
+      security:
+        - session: []
+      responses:
+        "200":
+          description: Whether a SCIM bearer token is configured
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags: [admin]
+      summary: Generate or rotate SCIM bearer token
+      description: Returns the plaintext token once; store it in the IdP tenant.
+      operationId: upsertScimToken
+      security:
+        - session: []
+      responses:
+        "200":
+          description: Plaintext token (display once)
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      tags: [admin]
+      summary: Revoke SCIM bearer token
+      operationId: revokeScimToken
+      security:
+        - session: []
+      responses:
+        "200":
+          description: Token revoked
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /api/v1/client/qos:
     post:
       tags: [client]
@@ -798,6 +1013,12 @@ components:
       in: header
       name: X-Api-Key
       description: Pair with X-Api-Timestamp and X-Api-Signature HMAC-SHA256.
+    scimBearer:
+      type: http
+      scheme: bearer
+      description: >
+        Organization SCIM token from Administration → SCIM provisioning.
+        Sent as Authorization Bearer on /scim/v2/* (separate from session cookies).
   parameters:
     RoomId:
       name: id

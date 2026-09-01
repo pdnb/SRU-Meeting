@@ -34,6 +34,8 @@ export async function deleteUserData(userId: string): Promise<void> {
         ssoProvider: null,
         ssoSubject: null,
         ldapDn: null,
+        externalId: null,
+        scimGroups: [],
         deletedAt: new Date(),
       },
     }),

@@ -172,10 +172,10 @@ Ship order: media polish (60–62) → engagement (63–68) → transcription pl
 - [x] Task 74: Analytics API
 - [x] Task 75: Analytics dashboard UI
 - [x] Task 76: Client QoS stats reporting
-- [ ] Task 77: SCIM bearer auth + admin token management
-- [ ] Task 78: SCIM Users endpoints
-- [ ] Task 79: SCIM Groups → orgRole mapping
-- [ ] Task 80: SCIM audit + documentation
+- [x] Task 77: SCIM bearer auth + admin token management
+- [x] Task 78: SCIM Users endpoints
+- [x] Task 79: SCIM Groups → orgRole mapping
+- [x] Task 80: SCIM audit + documentation
 - [ ] Task 81: E2EE room policy + token gate
 - [ ] Task 82: E2EE audio — Insertable Streams
 - [ ] Task 83: E2EE video — Insertable Streams
