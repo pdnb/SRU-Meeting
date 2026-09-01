@@ -115,14 +115,11 @@ export function Prejoin({
     <div className="sru-meet items-center justify-center overflow-y-auto px-page py-10">
       <div className="w-full max-w-lg">
         <h1 className="font-sans text-display font-semibold">{room.name}</h1>
-        <p className="mt-2 text-body text-zinc-300">
+        <p className="mt-2 text-body sru-meet-muted">
           Check camera and microphone before you join.
         </p>
         {room.e2eeEnabled ? (
-          <p
-            role="status"
-            className="mt-4 rounded-md border border-emerald-700/50 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-200"
-          >
+          <p role="status" className="sru-meet-notice">
             This meeting uses end-to-end encryption for camera and microphone.
             Recording, streaming, and breakouts are disabled. Screen share is not
             encrypted.
@@ -132,7 +129,7 @@ export function Prejoin({
           {video ? (
             <video ref={videoRef} autoPlay muted playsInline />
           ) : (
-            <p className="grid h-full place-items-center text-zinc-400">
+            <p className="grid h-full place-items-center sru-meet-muted">
               Camera off
             </p>
           )}
@@ -214,7 +211,7 @@ export function Prejoin({
                 {noiseSuppression ? "Noise reduction on" : "Reduce noise"}
               </button>
             ) : (
-              <span className="text-caption text-zinc-400 self-center">
+              <span className="text-caption sru-meet-muted self-center">
                 Noise reduction unavailable in this browser
               </span>
             )}

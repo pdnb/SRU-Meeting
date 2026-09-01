@@ -7,13 +7,13 @@ export default function AccountPage() {
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <main id="app-main" className="mx-auto w-full max-w-3xl flex-1 px-page py-12">
+    <main id="app-main" className="mx-auto w-full max-w-3xl flex-1 px-page py-10 md:py-14">
       <h1 className="font-sans text-display font-semibold text-ink">Account</h1>
       <p className="mt-3 max-w-[50ch] text-body text-muted">
         Create an API key for HMAC-signed integrations. The secret is shown once.
       </p>
       <form
-        className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end"
+        className="sru-card mt-8 flex flex-col gap-3 p-6 sm:flex-row sm:items-end"
         onSubmit={async (event) => {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
@@ -42,9 +42,10 @@ export default function AccountPage() {
         </button>
       </form>
       {secret ? (
-        <p className="mt-6 break-all text-body">
-          Secret (copy now): <code>{secret}</code>
-        </p>
+        <div className="sru-card mt-6 p-4">
+          <p className="text-caption font-semibold text-muted">Secret — copy now</p>
+          <code className="mt-2 block break-all text-body text-ink">{secret}</code>
+        </div>
       ) : null}
       {error ? (
         <p role="alert" className="sru-error mt-4">
@@ -52,16 +53,15 @@ export default function AccountPage() {
         </p>
       ) : null}
 
-      <h2 className="mt-16 font-sans text-body font-semibold text-ink">
-        Delete my data
-      </h2>
-      <p className="mt-3 max-w-[50ch] text-body text-muted">
-        PDPA deletion anonymizes your account, revokes API keys, and redacts your
-        public chat. Direct messages to other people are not rewritten.
-      </p>
-      <button
-        type="button"
-        className="sru-cta-danger mt-4"
+      <section className="sru-card mt-16 p-6">
+        <h2 className="text-title font-semibold text-ink">Delete my data</h2>
+        <p className="mt-3 max-w-[50ch] text-body text-muted">
+          PDPA deletion anonymizes your account, revokes API keys, and redacts your
+          public chat. Direct messages to other people are not rewritten.
+        </p>
+        <button
+          type="button"
+          className="sru-cta-danger mt-6"
         onClick={async () => {
           const res = await fetch("/api/v1/me", { method: "DELETE" });
           if (res.ok) {
@@ -70,7 +70,8 @@ export default function AccountPage() {
         }}
       >
         Delete my account
-      </button>
+        </button>
+      </section>
     </main>
   );
 }

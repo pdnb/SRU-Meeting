@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteHeader } from "@/components/ui/SiteHeader";
 
 export default function AuthLayout({
   children,
@@ -10,12 +11,15 @@ export default function AuthLayout({
       <a href="#main" className="sru-skip">
         Skip to content
       </a>
-      <header className="flex h-nav items-center border-b border-line px-page">
-        <Link href="/" className="font-sans text-body font-semibold text-ink">
-          SRU-Conf
+      <SiteHeader homeHref="/" />
+      <div className="sru-hero-glow flex flex-1 items-center justify-center px-page py-12">
+        <div className="sru-auth-panel">{children}</div>
+      </div>
+      <p className="border-t border-line py-6 text-center text-caption text-muted">
+        <Link href="/" className="sru-text-link">
+          Back to home
         </Link>
-      </header>
-      {children}
+      </p>
     </div>
   );
 }

@@ -41,7 +41,7 @@ export function WaitingRoom({
   return (
     <div className="sru-meet items-center justify-center px-page text-center">
       <h1 className="font-sans text-display font-semibold">Waiting for host</h1>
-      <p role="status" className="mt-4 max-w-md text-body text-zinc-300">
+      <p role="status" className="mt-4 max-w-md text-body sru-meet-muted">
         The host was notified. You will join the same room when they admit you.
         Current status: {status}.
       </p>

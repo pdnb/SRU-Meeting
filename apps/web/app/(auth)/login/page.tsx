@@ -41,9 +41,9 @@ export default function LoginPage() {
   }, []);
 
   return (
-    <main id="main" className="mx-auto w-full max-w-md flex-1 px-page py-12">
-      <h1 className="font-sans text-display font-semibold text-ink">Sign in</h1>
-      <p className="mt-4 text-body text-muted">
+    <main id="main">
+      <h1 className="font-sans text-title font-semibold text-ink">Sign in</h1>
+      <p className="mt-3 text-body text-muted">
         Use a campus account, or an identity provider your administrator enabled.
       </p>
       <form
@@ -90,7 +90,7 @@ export default function LoginPage() {
             {error}
           </p>
         ) : null}
-        <button type="submit" className="sru-cta" disabled={pending}>
+        <button type="submit" className="sru-cta w-full" disabled={pending}>
           {pending ? "Signing in…" : "Sign in"}
         </button>
       </form>
@@ -114,7 +114,7 @@ export default function LoginPage() {
             {saml ? (
               <button
                 type="button"
-                className="sru-cta-secondary"
+                className="sru-cta-secondary w-full"
                 onClick={() => {
                   window.location.href = "/api/auth/saml";
                 }}
@@ -159,7 +159,7 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 required
               />
-              <button type="submit" className="sru-cta-secondary">
+              <button type="submit" className="sru-cta-secondary w-full">
                 Sign in with LDAP
               </button>
             </form>
@@ -169,7 +169,7 @@ export default function LoginPage() {
 
       <p className="mt-8 text-body text-muted">
         No account?{" "}
-        <a href="/register" className="text-ink underline">
+        <a href="/register" className="sru-text-link">
           Register
         </a>
       </p>

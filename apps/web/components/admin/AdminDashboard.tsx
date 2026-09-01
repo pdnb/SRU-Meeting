@@ -41,17 +41,21 @@ export function AdminDashboard({
         Moderator actions are also in the audit log.
       </p>
 
-      <div className="mt-8 flex gap-2">
+      <div className="mt-8 flex gap-2" role="tablist" aria-label="Admin sections">
         <button
           type="button"
-          className={tab === "overview" ? "sru-cta" : "sru-cta-secondary"}
+          role="tab"
+          aria-selected={tab === "overview"}
+          className={tab === "overview" ? "sru-tab sru-tab-active" : "sru-tab"}
           onClick={() => setTab("overview")}
         >
           Overview
         </button>
         <button
           type="button"
-          className={tab === "analytics" ? "sru-cta" : "sru-cta-secondary"}
+          role="tab"
+          aria-selected={tab === "analytics"}
+          className={tab === "analytics" ? "sru-tab sru-tab-active" : "sru-tab"}
           onClick={() => setTab("analytics")}
         >
           Analytics

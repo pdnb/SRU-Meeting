@@ -8,11 +8,11 @@ export default function RegisterPage() {
   const [pending, setPending] = useState(false);
 
   return (
-    <main id="main" className="mx-auto w-full max-w-md flex-1 px-page py-12">
-      <h1 className="font-sans text-display font-semibold text-ink">
+    <main id="main">
+      <h1 className="font-sans text-title font-semibold text-ink">
         Create an account
       </h1>
-      <p className="mt-4 text-body text-muted">
+      <p className="mt-3 text-body text-muted">
         Registration stays on this server. Passwords are hashed with Argon2id.
       </p>
       <form
@@ -72,13 +72,13 @@ export default function RegisterPage() {
             {error}
           </p>
         ) : null}
-        <button type="submit" className="sru-cta" disabled={pending}>
+        <button type="submit" className="sru-cta w-full" disabled={pending}>
           {pending ? "Creating account…" : "Register"}
         </button>
       </form>
       <p className="mt-8 text-body text-muted">
         Already registered?{" "}
-        <a href="/login" className="text-ink underline">
+        <a href="/login" className="sru-text-link">
           Sign in
         </a>
       </p>
