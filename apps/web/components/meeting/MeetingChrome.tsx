@@ -103,6 +103,7 @@ export function MeetingChrome({
 
   const moderator = role === "host" || role === "cohost";
   const inChild = Boolean(room.parentRoomId);
+  const e2eeEnabled = Boolean(room.e2eeEnabled);
   const breakouts = useOpenBreakout(room.parentRoomId ?? room.id);
   const moveToRoom = useCallback(
     async (destinationRoomId: string) => {
@@ -282,6 +283,15 @@ export function MeetingChrome({
           Reconnecting…
         </p>
       ) : null}
+      {e2eeEnabled ? (
+        <p
+          role="status"
+          className="border-b border-emerald-800/60 bg-emerald-950/50 px-page py-2 text-center text-sm text-emerald-200"
+        >
+          End-to-end encryption is active for camera and microphone. Recording,
+          streaming, and breakouts are unavailable.
+        </p>
+      ) : null}
       <div className="sru-meet-stage relative">
         {layout === "grid" ? <GridView tiles={tiles} /> : null}
         {layout === "speaker" ? (
@@ -304,7 +314,7 @@ export function MeetingChrome({
             stream={streaming}
           />
         ) : null}
-        {!moderator && !inChild ? (
+        {!moderator && !inChild && !e2eeEnabled ? (
           <BreakoutJoinBanner
             session={breakouts.session}
             userId={userId}
@@ -347,7 +357,7 @@ export function MeetingChrome({
         {panel === "settings" && moderator ? (
           <RoomSettings room={room} onChange={setRoom} />
         ) : null}
-        {panel === "breakouts" && moderator && !inChild && !breakouts.childRoom ? (
+        {panel === "breakouts" && moderator && !inChild && !breakouts.childRoom && !e2eeEnabled ? (
           <BreakoutPanel
             roomId={room.id}
             session={breakouts.session}
@@ -384,7 +394,9 @@ export function MeetingChrome({
         >
           {localParticipant.isCameraEnabled ? "Stop camera" : "Start camera"}
         </button>
-        {room.allowScreenShare !== false ? <ScreenShareButton /> : null}
+        {room.allowScreenShare !== false ? (
+          <ScreenShareButton e2eeEnabled={e2eeEnabled} />
+        ) : null}
         <RaiseHand />
         <Reactions userId={userId} />
         <LayoutSwitcher layout={layout} onChange={setLayout} />
@@ -444,7 +456,7 @@ export function MeetingChrome({
             >
               Settings
             </button>
-            {!inChild && !breakouts.childRoom ? (
+            {!inChild && !breakouts.childRoom && !e2eeEnabled ? (
               <button
                 type="button"
                 className="sru-meet-btn"
@@ -458,8 +470,12 @@ export function MeetingChrome({
                 Breakouts
               </button>
             ) : null}
-            <RecordButton roomId={room.id} recording={recording} />
-            <StreamButton roomId={room.id} stream={streaming} />
+            {!e2eeEnabled ? (
+              <>
+                <RecordButton roomId={room.id} recording={recording} />
+                <StreamButton roomId={room.id} stream={streaming} />
+              </>
+            ) : null}
             <ModerationBar roomId={room.id} />
             <button
               type="button"

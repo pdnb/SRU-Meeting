@@ -99,6 +99,24 @@ export function RoomSettings({
           />
           Allow chat
         </label>
+        <div className="rounded-md border border-zinc-700/70 bg-zinc-900/40 p-3 text-sm text-zinc-300">
+          <p className="font-semibold text-zinc-100">End-to-end encryption</p>
+          <p className="mt-1">
+            When enabled, camera and microphone use Insertable Streams. Recording,
+            live streaming, and breakouts are blocked. Screen share stays
+            plaintext. Requires desktop Chrome or Edge.
+          </p>
+          <label className="mt-3 flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={Boolean(room.e2eeEnabled)}
+              onChange={(event) =>
+                void patch({ e2eeEnabled: event.target.checked })
+              }
+            />
+            Enable E2EE for this room
+          </label>
+        </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="domains" className="sru-label">
             Allowed email domains

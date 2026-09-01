@@ -20,6 +20,7 @@ import {
   roomIsAtCapacity,
   userMaySeeRoom,
 } from "@/lib/rooms";
+import { assertE2eeCompatible } from "@/lib/e2ee/policy";
 
 export function parentCanHostBreakouts(room: {
   parentRoomId: string | null;
@@ -159,6 +160,10 @@ export async function assertBreakoutChildJoin(input: {
   const parent = await getRoomRecord(input.child.parentRoomId);
   if (!parent) {
     return { ok: false, status: 404, code: "NOT_FOUND", message: "Parent room not found" };
+  }
+  const parentE2eeGate = assertE2eeCompatible(parent, "breakouts");
+  if (!parentE2eeGate.ok) {
+    return parentE2eeGate;
   }
   const parentParticipation = await getParticipation(
     input.child.parentRoomId,
@@ -354,6 +359,10 @@ export async function createBreakouts(input: {
   });
   if (!loaded.ok) {
     return loaded;
+  }
+  const e2eeGate = assertE2eeCompatible(loaded.room, "breakouts");
+  if (!e2eeGate.ok) {
+    return e2eeGate;
   }
   const hostable = parentCanHostBreakouts(loaded.room);
   if (!hostable.ok) {

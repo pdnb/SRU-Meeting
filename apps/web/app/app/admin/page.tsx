@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { toRoomDto } from "@/lib/rooms";
 import { toRecordingDto } from "@/lib/recording";
 import { getRecordingRetentionDays } from "@/lib/retention";
+import { getOrgAllowsE2eeRooms } from "@/lib/e2ee/org-settings";
 import { getScimTokenMeta } from "@/lib/scim";
 import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
 import { AuditLogSchema, UserSchema } from "@sru/shared";
@@ -23,7 +24,7 @@ export default async function AdminPage() {
     );
   }
 
-  const [users, rooms, recordings, audit, retentionDays, scimMeta] = await Promise.all([
+  const [users, rooms, recordings, audit, retentionDays, allowE2eeRooms, scimMeta] = await Promise.all([
     prisma.user.findMany({
       where: { isGuest: false },
       orderBy: { createdAt: "desc" },
@@ -37,6 +38,7 @@ export default async function AdminPage() {
     }),
     prisma.auditLog.findMany({ orderBy: { createdAt: "desc" }, take: 100 }),
     getRecordingRetentionDays(),
+    getOrgAllowsE2eeRooms(),
     getScimTokenMeta(),
   ]);
 
@@ -66,6 +68,7 @@ export default async function AdminPage() {
         }),
       )}
       retentionDays={retentionDays}
+      allowE2eeRooms={allowE2eeRooms}
       scimMeta={scimMeta}
     />
   );

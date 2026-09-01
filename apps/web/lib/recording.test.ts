@@ -105,6 +105,29 @@ describe("requestRecording", () => {
     }
   });
 
+  it("returns 409 when the room has E2EE enabled", async () => {
+    prisma.room.findUnique.mockResolvedValue({ ...room, e2eeEnabled: true });
+    prisma.roomParticipant.findUnique.mockResolvedValue({
+      id: "h1",
+      roomId: "room-1",
+      userId: "host-1",
+      role: "host",
+      banned: false,
+      lobbyStatus: "admitted",
+    });
+
+    const result = await requestRecording({
+      roomId: "room-1",
+      actorId: "host-1",
+      raw: { mode: "composite" },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(409);
+      expect(result.code).toBe("E2EE_INCOMPATIBLE");
+    }
+  });
+
   it("starts track egress once per track after solo-host consent", async () => {
     prisma.roomParticipant.findUnique.mockResolvedValue({
       id: "h1",

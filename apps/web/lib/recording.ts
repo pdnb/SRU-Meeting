@@ -16,6 +16,7 @@ import { writeAudit } from "@/lib/audit";
 import { getParticipation, getRoomRecord, isModeratorRole } from "@/lib/rooms";
 import { signRecordingDownloadUrl } from "@/lib/storage";
 import { enqueueWebhook } from "@/lib/webhooks";
+import { assertE2eeCompatible } from "@/lib/e2ee/policy";
 
 export function allAdmittedHaveConsented(
   admittedUserIds: string[],
@@ -199,6 +200,11 @@ export async function requestRecording(input: {
       code: "FORBIDDEN",
       message: "Only a host or cohost can start recording",
     };
+  }
+
+  const e2eeGate = assertE2eeCompatible(room, "recording");
+  if (!e2eeGate.ok) {
+    return e2eeGate;
   }
 
   const active = await prisma.recording.findFirst({

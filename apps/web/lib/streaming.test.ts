@@ -259,6 +259,30 @@ describe("requestStream", () => {
     expect(startRtmpRoomCompositeEgress).not.toHaveBeenCalled();
   });
 
+  it("returns 409 when the room has E2EE enabled", async () => {
+    prisma.room.findUnique.mockResolvedValue({ ...room, e2eeEnabled: true });
+    prisma.roomParticipant.findUnique.mockResolvedValue({
+      id: "h1",
+      roomId: "room-1",
+      userId: "host-1",
+      role: "host",
+      banned: false,
+      lobbyStatus: "admitted",
+    });
+
+    const result = await requestStream({
+      roomId: "room-1",
+      actorId: "host-1",
+      raw: { rtmpUrl },
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(409);
+      expect(result.code).toBe("E2EE_INCOMPATIBLE");
+    }
+  });
+
   it("stays pending until every admitted participant consents", async () => {
     prisma.roomParticipant.findUnique.mockResolvedValue({
       id: "h1",

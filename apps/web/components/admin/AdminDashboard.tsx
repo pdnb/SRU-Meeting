@@ -3,6 +3,7 @@
 import type { AuditLog, Recording, Room, User } from "@sru/shared";
 import { useState } from "react";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
+import { E2eeSettingsPanel } from "@/components/admin/E2eeSettingsPanel";
 import { ScimTokenPanel } from "@/components/admin/ScimTokenPanel";
 
 export function AdminDashboard({
@@ -11,6 +12,7 @@ export function AdminDashboard({
   recordings,
   audit,
   retentionDays,
+  allowE2eeRooms,
   scimMeta,
 }: {
   users: User[];
@@ -18,6 +20,7 @@ export function AdminDashboard({
   recordings: Recording[];
   audit: AuditLog[];
   retentionDays: number;
+  allowE2eeRooms: boolean;
   scimMeta: {
     configured: boolean;
     createdAt: string | null;
@@ -100,6 +103,8 @@ export function AdminDashboard({
 
       <ScimTokenPanel initialMeta={scimMeta} />
 
+      <E2eeSettingsPanel initialAllowE2ee={allowE2eeRooms} />
+
       <section className="mt-12">
         <h2 className="font-sans text-body font-semibold text-ink">Users</h2>
         <ul className="mt-4 divide-y divide-line border-t border-line">
@@ -121,7 +126,8 @@ export function AdminDashboard({
             <li key={room.id} className="py-3">
               <p className="font-semibold text-ink">{room.name}</p>
               <p className="text-body text-muted">
-                {room.finishedAt ? "Closed" : "Open"} · {room.id}
+                {room.finishedAt ? "Closed" : "Open"}
+                {room.e2eeEnabled ? " · E2EE" : ""} · {room.id}
               </p>
             </li>
           ))}

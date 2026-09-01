@@ -25,6 +25,7 @@ export const RoomSchema = z.object({
   allowedEmailDomains: z.array(z.string()).optional(),
   allowScreenShare: z.boolean().optional(),
   allowChat: z.boolean().optional(),
+  e2eeEnabled: z.boolean().optional(),
   maxParticipants: z.number().int().positive().optional(),
   parentRoomId: z.string().min(1).nullable().optional(),
 });
@@ -40,6 +41,7 @@ export const UpdateRoomSettingsSchema = z.object({
     .optional(),
   allowScreenShare: z.boolean().optional(),
   allowChat: z.boolean().optional(),
+  e2eeEnabled: z.boolean().optional(),
   maxParticipants: z.number().int().min(1).max(25).optional(),
 });
 

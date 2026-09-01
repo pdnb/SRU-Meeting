@@ -146,6 +146,7 @@ model Room {
   allowedEmailDomains String[]          @default([])
   allowScreenShare    Boolean           @default(true)
   allowChat           Boolean           @default(true)
+  e2eeEnabled         Boolean           @default(false)
   maxParticipants     Int               @default(25)
   chatRetentionDays   Int?
   parentRoomId        String?

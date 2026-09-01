@@ -1,6 +1,7 @@
 "use client";
 
 import type { Room } from "@sru/shared";
+import { createE2eeWarning } from "@sru/embed";
 import { useEffect, useState } from "react";
 import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
 import { MeetingRoom } from "@/components/meeting/MeetingRoom";
@@ -51,12 +52,15 @@ export function EmbedFrame({
         { type: EMBED_READY_TYPE, roomId: room.id },
         origin,
       );
+      if (room.e2eeEnabled) {
+        window.parent.postMessage(createE2eeWarning(room.id), origin);
+      }
     }
 
     return () => {
       window.removeEventListener("message", onMessage);
     };
-  }, [allowedOrigins, configurationError, room.id]);
+  }, [allowedOrigins, configurationError, room.e2eeEnabled, room.id]);
 
   if (configurationError ?? error) {
     return (
@@ -69,8 +73,16 @@ export function EmbedFrame({
 
   if (!connect) {
     return (
-      <div className="flex h-dvh items-center justify-center px-page text-body text-muted">
-        Waiting for the parent page to send a minted join token…
+      <div className="flex h-dvh flex-col items-center justify-center gap-3 px-page text-body text-muted">
+        {room.e2eeEnabled ? (
+          <p
+            role="alert"
+            className="max-w-lg rounded-md border border-amber-700/50 bg-amber-950/40 px-4 py-3 text-center text-sm text-amber-100"
+          >
+            {createE2eeWarning(room.id).message}
+          </p>
+        ) : null}
+        <p>Waiting for the parent page to send a minted join token…</p>
       </div>
     );
   }

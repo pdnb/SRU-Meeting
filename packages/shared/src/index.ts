@@ -28,6 +28,21 @@ export {
 } from "./room";
 
 export {
+  E2EE_INCOMPATIBLE_CODE,
+  E2EE_KEY_DATA_TOPIC,
+  E2eeFeatureSchema,
+  E2eeDegradedFeatureSchema,
+  E2eePolicyMatrixSchema,
+  E2eeKeyPacketSchema,
+  buildE2eePolicyMatrix,
+  e2eeIncompatibleMessage,
+  type E2eeFeature,
+  type E2eeDegradedFeature,
+  type E2eePolicyMatrix,
+  type E2eeKeyPacket,
+} from "./e2ee";
+
+export {
   LoginRequestSchema,
   LdapLoginRequestSchema,
   RegisterRequestSchema,

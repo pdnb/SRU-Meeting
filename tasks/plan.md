@@ -176,10 +176,10 @@ Ship order: media polish (60–62) → engagement (63–68) → transcription pl
 - [x] Task 78: SCIM Users endpoints
 - [x] Task 79: SCIM Groups → orgRole mapping
 - [x] Task 80: SCIM audit + documentation
-- [ ] Task 81: E2EE room policy + token gate
-- [ ] Task 82: E2EE audio — Insertable Streams
-- [ ] Task 83: E2EE video — Insertable Streams
-- [ ] Task 84: E2EE product limits + mobile/embed stance
+- [x] Task 81: E2EE room policy + token gate
+- [x] Task 82: E2EE audio — Insertable Streams
+- [x] Task 83: E2EE video — Insertable Streams
+- [x] Task 84: E2EE product limits + mobile/embed stance
 
 ### Checkpoint: Phase 4 complete
 

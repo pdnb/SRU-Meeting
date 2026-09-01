@@ -30,6 +30,9 @@ export type EmbedHandle = {
  *
  * Iframe → parent (`sru-embed.ready`):
  * `{ type, roomId }` — sent when the iframe is listening for connect.
+ *
+ * Iframe → parent (`sru-embed.e2ee-warning`):
+ * Sent when the hosted room has E2EE enabled so integrators can show a banner.
  */
 export const EMBED_READY_TYPE = "sru-embed.ready" as const;
 export const EMBED_CONNECT_TYPE = "sru-embed.connect" as const;
@@ -52,6 +55,13 @@ export type EmbedConnectMessage = {
   audio?: boolean;
   video?: boolean;
 };
+
+export {
+  EMBED_E2EE_WARNING_TYPE,
+  createE2eeWarning,
+  isEmbedE2eeWarning,
+  type EmbedE2eeWarning,
+} from "./e2ee";
 
 export function createReadyMessage(roomId: string): EmbedReadyMessage {
   return { type: EMBED_READY_TYPE, roomId };

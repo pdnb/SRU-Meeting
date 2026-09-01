@@ -290,6 +290,23 @@ describe("createBreakouts", () => {
     }
   });
 
+  it("returns 409 when the parent room has E2EE enabled", async () => {
+    prisma.room.findUnique.mockResolvedValue({ ...parentRoom, e2eeEnabled: true });
+    prisma.roomParticipant.findUnique.mockResolvedValue(hostRow());
+
+    const result = await createBreakouts({
+      roomId: "room-1",
+      actorId: "host-1",
+      raw: { mode: "auto", count: 2 },
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(409);
+      expect(result.code).toBe("E2EE_INCOMPATIBLE");
+    }
+  });
+
   it("rejects a child room as the breakout parent", async () => {
     prisma.room.findUnique.mockResolvedValue({
       ...parentRoom,

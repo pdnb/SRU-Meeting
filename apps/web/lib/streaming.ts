@@ -20,6 +20,7 @@ import { getParticipation, getRoomRecord, isModeratorRole } from "@/lib/rooms";
 import { enqueueWebhook } from "@/lib/webhooks";
 import { streamLivePlaylistUrl } from "@/lib/stream-ui";
 import { getRoomService, ensureLiveKitRoom } from "@/lib/livekit/room-service";
+import { assertE2eeCompatible } from "@/lib/e2ee/policy";
 
 const MAX_STREAM_DESTINATIONS = 8;
 
@@ -314,6 +315,11 @@ export async function requestStream(input: {
       code: "FORBIDDEN",
       message: "Only a host or cohost can start streaming",
     };
+  }
+
+  const e2eeGate = assertE2eeCompatible(room, "streaming");
+  if (!e2eeGate.ok) {
+    return e2eeGate;
   }
 
   const active = await prisma.stream.findFirst({

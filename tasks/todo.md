@@ -265,10 +265,12 @@ Automated verification 2026-09-01: Tasks 77–80 marked done; `phase4_scim` migr
 
 ### Wave 6: E2EE — last
 
-- [ ] **Task 81:** E2EE room policy + token gate
-- [ ] **Task 82:** E2EE audio — Insertable Streams
-- [ ] **Task 83:** E2EE video — Insertable Streams
-- [ ] **Task 84:** E2EE product limits + mobile/embed stance
+- [x] **Task 81:** E2EE room policy + token gate
+- [x] **Task 82:** E2EE audio — Insertable Streams
+- [x] **Task 83:** E2EE video — Insertable Streams
+- [x] **Task 84:** E2EE product limits + mobile/embed stance
+
+Automated verification 2026-09-01: Tasks 81–84 marked done; `phase4_e2ee` migration added; shared + web + embed tests pass; typecheck pass; `next build --turbopack` in `apps/web` if prisma EPERM. Policy gates on recording/streaming/breakouts; LiveKit Insertable Streams E2EE for A/V; screen share plaintext; embed warning postMessage; `docs/e2ee.md`. Two-browser E2EE verification and human pilot review still required.
 
 ### Checkpoint: Phase 4 complete (after Tasks 81–84)
 

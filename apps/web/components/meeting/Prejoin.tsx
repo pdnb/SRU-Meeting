@@ -3,9 +3,11 @@
 import type { Room } from "@sru/shared";
 import { createLocalVideoTrack, LocalVideoTrack } from "livekit-client";
 import { useEffect, useRef, useState } from "react";
+import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
 import { VirtualBackgroundControl } from "@/components/meeting/VirtualBackgroundControl";
 import { useNoiseSuppressionPreference } from "@/components/meeting/useNoiseSuppressionPreference";
 import { useVirtualBackgroundPreference } from "@/components/meeting/useVirtualBackgroundPreference";
+import { getE2eeBlockReason } from "@/lib/e2ee/support";
 import {
   applyVirtualBackgroundToTrack,
   isNoiseSuppressionSupported,
@@ -44,6 +46,7 @@ export function Prejoin({
   const [virtualBackground] = useVirtualBackgroundPreference();
   const noiseSupported = isNoiseSuppressionSupported();
   const backgroundSupported = isVirtualBackgroundSupported();
+  const e2eeBlockReason = room.e2eeEnabled ? getE2eeBlockReason() : null;
 
   useEffect(() => {
     if (!video) {
@@ -99,6 +102,15 @@ export function Prejoin({
     });
   }, [virtualBackground, backgroundSupported, video]);
 
+  if (e2eeBlockReason) {
+    return (
+      <MeetingErrorState
+        title="End-to-end encryption unavailable"
+        message={e2eeBlockReason}
+      />
+    );
+  }
+
   return (
     <div className="sru-meet items-center justify-center overflow-y-auto px-page py-10">
       <div className="w-full max-w-lg">
@@ -106,6 +118,16 @@ export function Prejoin({
         <p className="mt-2 text-body text-zinc-300">
           Check camera and microphone before you join.
         </p>
+        {room.e2eeEnabled ? (
+          <p
+            role="status"
+            className="mt-4 rounded-md border border-emerald-700/50 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-200"
+          >
+            This meeting uses end-to-end encryption for camera and microphone.
+            Recording, streaming, and breakouts are disabled. Screen share is not
+            encrypted.
+          </p>
+        ) : null}
         <div className="sru-tile mt-6 aspect-video">
           {video ? (
             <video ref={videoRef} autoPlay muted playsInline />

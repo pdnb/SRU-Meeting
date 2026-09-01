@@ -10,6 +10,12 @@ import {
 import type { LobbyStatus, Prisma, RoomRole } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
+import { writeAudit } from "@/lib/audit";
+import { assertE2eeCanBeEnabled } from "@/lib/e2ee/policy";
+import {
+  getOrgAllowsE2eeRooms,
+  roomHasActiveE2eeBlockers,
+} from "@/lib/e2ee/org-settings";
 
 export const DEFAULT_MAX_PARTICIPANTS = 25;
 
@@ -30,6 +36,7 @@ export function toRoomDto(room: {
   allowedEmailDomains?: string[];
   allowScreenShare?: boolean;
   allowChat?: boolean;
+  e2eeEnabled?: boolean;
   maxParticipants?: number;
   parentRoomId?: string | null;
 }): Room {
@@ -47,6 +54,7 @@ export function toRoomDto(room: {
     allowedEmailDomains: room.allowedEmailDomains,
     allowScreenShare: room.allowScreenShare,
     allowChat: room.allowChat,
+    e2eeEnabled: room.e2eeEnabled ?? false,
     maxParticipants: room.maxParticipants ?? DEFAULT_MAX_PARTICIPANTS,
     parentRoomId: room.parentRoomId ?? null,
   });
@@ -178,7 +186,7 @@ export async function updateRoomSettingsForHost(
   raw: unknown,
 ): Promise<
   | { ok: true; room: Room }
-  | { ok: false; status: 403 | 404 | 422; code: string; message: string }
+  | { ok: false; status: 403 | 404 | 409 | 422; code: string; message: string }
 > {
   const parsed = UpdateRoomSettingsSchema.safeParse(raw);
   if (!parsed.success) {
@@ -205,8 +213,38 @@ export async function updateRoomSettingsForHost(
     };
   }
 
+  if (parsed.data.e2eeEnabled === true && !room.e2eeEnabled) {
+    const [allowOrgE2ee, blockers] = await Promise.all([
+      getOrgAllowsE2eeRooms(),
+      roomHasActiveE2eeBlockers(roomId),
+    ]);
+    const gate = assertE2eeCanBeEnabled({
+      allowOrgE2ee: allowOrgE2ee,
+      ...blockers,
+    });
+    if (!gate.ok) {
+      return gate;
+    }
+  }
+
   const data = await settingsToPrisma(parsed.data);
   const updated = await prisma.room.update({ where: { id: roomId }, data });
+  if (parsed.data.e2eeEnabled === true && !room.e2eeEnabled) {
+    await writeAudit({
+      actorId: userId,
+      action: "room.e2ee_enabled",
+      targetType: "room",
+      targetId: roomId,
+    });
+  }
+  if (parsed.data.e2eeEnabled === false && room.e2eeEnabled) {
+    await writeAudit({
+      actorId: userId,
+      action: "room.e2ee_disabled",
+      targetType: "room",
+      targetId: roomId,
+    });
+  }
   return { ok: true, room: toRoomDto(updated) };
 }
 
@@ -226,6 +264,9 @@ async function settingsToPrisma(
     data.allowScreenShare = settings.allowScreenShare;
   }
   if (settings.allowChat !== undefined) data.allowChat = settings.allowChat;
+  if (settings.e2eeEnabled !== undefined) {
+    data.e2eeEnabled = settings.e2eeEnabled;
+  }
   if (settings.maxParticipants !== undefined) {
     data.maxParticipants = settings.maxParticipants;
   }

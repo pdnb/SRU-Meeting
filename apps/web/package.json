@@ -23,6 +23,7 @@
     "@node-saml/node-saml": "^5.1.0",
     "@prisma/client": "^6.19.3",
     "@sru/shared": "workspace:*",
+    "@sru/embed": "workspace:*",
     "hls.js": "^1.6.13",
     "ldapts": "^8.1.5",
     "livekit-client": "^2.22.1",

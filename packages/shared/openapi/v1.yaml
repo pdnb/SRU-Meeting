@@ -242,6 +242,12 @@ paths:
                 $ref: "#/components/schemas/RecordingSchema"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          description: E2EE room — recording incompatible
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorSchema"
     delete:
       tags: [rooms]
       summary: Stop the active recording
@@ -1099,6 +1105,11 @@ components:
         ownerId:
           type: string
           minLength: 1
+        e2eeEnabled:
+          type: boolean
+          description: >
+            When true, camera and microphone are encrypted client-side. Recording,
+            streaming, and breakouts return 409 E2EE_INCOMPATIBLE.
     RoomParticipantSchema:
       type: object
       required: [id, roomId, userId, role, banned, lobbyStatus]
