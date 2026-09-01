@@ -1,10 +1,10 @@
 export type EmbedMountOptions = {
   /** Parent page element that will own the iframe. */
   container: HTMLElement;
-  /** SRU-Conf room id. */
+  /** SRU-Meeting room id. */
   roomId: string;
   /**
-   * Origin of the SRU-Conf deployment that hosts `/embed/rooms/[id]`.
+   * Origin of the SRU-Meeting deployment that hosts `/embed/rooms/[id]`.
    * Example: `https://meet.example.com`
    */
   baseUrl: string;
@@ -92,7 +92,7 @@ export function createConnectMessage(input: {
 
 /**
  * Sends a minted connect payload into the hosted iframe.
- * `targetOrigin` must be the SRU-Conf deployment origin (see `baseUrl`).
+ * `targetOrigin` must be the SRU-Meeting deployment origin (see `baseUrl`).
  */
 export function postConnect(
   iframe: HTMLIFrameElement,
@@ -113,13 +113,13 @@ export function embedRoomUrl(baseUrl: string, roomId: string): string {
 }
 
 /**
- * Mounts an SRU-Conf meeting iframe into `container`.
+ * Mounts an SRU-Meeting meeting iframe into `container`.
  * LiveKit media and secrets stay inside the hosted iframe origin.
  */
 export function mount(options: EmbedMountOptions): EmbedHandle {
   const iframe = document.createElement("iframe");
   iframe.src = embedRoomUrl(options.baseUrl, options.roomId);
-  iframe.title = options.title ?? "SRU-Conf meeting";
+  iframe.title = options.title ?? "SRU-Meeting meeting";
   iframe.allow = "camera; microphone; display-capture; autoplay; fullscreen";
   iframe.setAttribute("allowfullscreen", "true");
   iframe.style.width = "100%";

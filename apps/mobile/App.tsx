@@ -141,7 +141,7 @@ export default function App() {
     <SafeAreaView style={styles.root}>
       <StatusBar style="dark" />
       <View style={styles.form}>
-        <Text style={styles.title}>SRU Conf</Text>
+        <Text style={styles.title}>SRU Meeting</Text>
         <Text style={styles.hint}>
           Mint a token from the local web API. LiveKit secrets stay on the
           server — never hardcode them here.

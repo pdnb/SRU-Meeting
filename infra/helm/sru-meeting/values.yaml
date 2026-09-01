@@ -1,6 +1,6 @@
 # Placeholder values only. Never commit production credentials.
 # Override at install time, e.g.:
-#   helm upgrade --install sru infra/helm/sru-conf \
+#   helm upgrade --install sru infra/helm/sru-meeting \
 #     --set postgres.auth.password=$POSTGRES_PASSWORD \
 #     --set minio.auth.rootPassword=$MINIO_PASSWORD \
 #     --set web.secrets.authSecret=$AUTH_SECRET
@@ -12,7 +12,7 @@ web:
   enabled: true
   replicaCount: 1
   image:
-    repository: sru-conf/web
+    repository: sru-meeting/web
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -28,7 +28,7 @@ web:
     S3_RECORDINGS_BUCKET: sru-chat
     S3_REGION: us-east-1
     EMBED_ALLOWED_ORIGINS: ""
-  # After install, set S3 endpoints to http://<release>-sru-conf-minio:9000
+  # After install, set S3 endpoints to http://<release>-sru-meeting-minio:9000
   # (see helm template output for the MinIO Service name).
   # Secret keys are referenced from an existing Secret, or from inline placeholders below.
   secrets:

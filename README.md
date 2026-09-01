@@ -1,8 +1,8 @@
-# SRU-Conf
+# SRU-Meeting
 
 แพลตฟอร์มประชุมออนไลน์แบบ **Self-hosted** สำหรับองค์กรที่ต้องการควบคุมข้อมูลและโครงสร้างพื้นฐานเอง รองรับการเข้าร่วมผ่านเว็บ มือถือ และการฝัง (embed) พร้อม SSO, Public API และ Webhook สำหรับเชื่อมต่อระบบเดิม
 
-**SRU-Conf** is a self-hosted video conference platform built on [LiveKit](https://livekit.io/). Organizations run media and metadata on their own infrastructure while users join from the web, mobile apps, or embedded iframes.
+**SRU-Meeting** is a self-hosted video conference platform built on [LiveKit](https://livekit.io/). Organizations run media and metadata on their own infrastructure while users join from the web, mobile apps, or embedded iframes.
 
 ---
 
@@ -65,8 +65,8 @@ LiveKit JWTs are minted **only on the server** with `livekit-server-sdk`. `LIVEK
 ### 1. Clone and install
 
 ```powershell
-git clone <repo-url> SRU-Conf
-cd SRU-Conf
+git clone <repo-url> SRU-Meeting
+cd SRU-Meeting
 pnpm install
 ```
 
@@ -129,7 +129,7 @@ Open [http://localhost:3000](http://localhost:3000). Register a local account, c
 ## Project structure
 
 ```text
-SRU-Conf/
+SRU-Meeting/
 ├── apps/
 │   ├── web/                 # Next.js app (main product)
 │   ├── mobile/              # Expo / React Native
@@ -163,7 +163,7 @@ API authentication uses `X-Api-Key`, `X-Api-Timestamp`, and `X-Api-Signature` he
 | Environment | Guide |
 |-------------|-------|
 | **Local / small org** | [infra/README.md](infra/README.md) — Docker Compose (default) |
-| **Kubernetes** | [infra/helm/sru-conf/README.md](infra/helm/sru-conf/README.md) — Helm for web, Postgres, Redis, MinIO; separate charts for LiveKit, coturn, egress |
+| **Kubernetes** | [infra/helm/sru-meeting/README.md](infra/helm/sru-meeting/README.md) — Helm for web, Postgres, Redis, MinIO; separate charts for LiveKit, coturn, egress |
 | **Load testing** | [infra/loadtest/README.md](infra/loadtest/README.md) |
 
 Compose does **not** bind port 3000 — you can run the Next.js app alongside the stack.

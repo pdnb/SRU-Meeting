@@ -1,6 +1,6 @@
 # End-to-end encryption (E2EE) — Phase 4 Wave 6
 
-SRU-Conf v1 implements client-side media encryption with WebRTC **Insertable Streams** (via LiveKit's E2EE worker). This document describes policy gates, browser support, and pilot blockers.
+SRU-Meeting v1 implements client-side media encryption with WebRTC **Insertable Streams** (via LiveKit's E2EE worker). This document describes policy gates, browser support, and pilot blockers.
 
 ## Overview
 

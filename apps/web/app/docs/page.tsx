@@ -35,7 +35,7 @@ export default function DocsPage() {
     <div className="min-h-dvh bg-canvas text-ink">
       <header className="flex h-nav items-center border-b border-line px-page">
         <Link href="/" className="font-semibold text-ink">
-          SRU-Conf
+          SRU-Meeting
         </Link>
       </header>
       <main id="main" className="px-page py-6">

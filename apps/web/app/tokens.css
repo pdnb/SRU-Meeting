@@ -1,5 +1,5 @@
 /*
-  SRU-Conf design tokens. Later pages should reuse these, not invent new values.
+  SRU-Meeting design tokens. Later pages should reuse these, not invent new values.
 
   Tailwind v4 theme variables:
   https://tailwindcss.com/docs/theme
@@ -19,10 +19,13 @@
   --sru-ink: #18181b;
   --sru-muted: #52525b;
   --sru-line: #e4e4e7;
-  --sru-accent: #0f5c56;
-  --sru-accent-hover: #0d4f4a;
-  --sru-accent-fg: #f4f4f5;
-  --sru-accent-soft: #e6f3f2;
+  --sru-brand: #00bceb;
+  --sru-brand-hover: #00a9d4;
+  --sru-brand-fg: #041016;
+  --sru-accent: var(--sru-brand);
+  --sru-accent-hover: var(--sru-brand-hover);
+  --sru-accent-fg: var(--sru-brand-fg);
+  --sru-accent-soft: #dff6fc;
   --sru-success: #166534;
   --sru-success-fg: #fafafa;
   --sru-success-soft: #dcfce7;
@@ -37,7 +40,7 @@
   --sru-meet-line: #3a3a3a;
   --sru-meet-ink: #f4f4f5;
   --sru-meet-muted: #a1a1aa;
-  --sru-meet-speaker: #00bceb;
+  --sru-meet-speaker: var(--sru-brand);
   --sru-space-1: 0.25rem;
   --sru-space-2: 0.5rem;
   --sru-space-3: 0.75rem;
@@ -73,10 +76,7 @@
     --sru-ink: #f4f4f5;
     --sru-muted: #a1a1aa;
     --sru-line: #3f3f46;
-    --sru-accent: #14b8a6;
-    --sru-accent-hover: #0d9488;
-    --sru-accent-fg: #042f2e;
-    --sru-accent-soft: #134e4a;
+    --sru-accent-soft: #0c3340;
     --sru-success: #22c55e;
     --sru-success-soft: #14532d;
     --sru-warning: #eab308;

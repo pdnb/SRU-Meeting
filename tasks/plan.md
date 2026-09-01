@@ -1,8 +1,8 @@
-# Implementation Plan: SRU-Conf
+# Implementation Plan: SRU-Meeting
 
 ## Overview
 
-SRU-Conf is a self-hosted video conference platform. Organizations keep media and metadata on their own infrastructure, join from the web, and later connect existing identity systems via SSO and a public API. Phase 0–1 ship a branded Next.js app on a local LiveKit SFU: a real 25-person meeting with camera/mic, screen share, public and private chat, raise hand, moderator controls, room password, and lobby. Phase 2 (Tasks 25–40), Phase 3 (Tasks 41–59), and Phase 4 (Tasks 60–84) are split into S/M tasks; implement one numbered task per session.
+SRU-Meeting is a self-hosted video conference platform. Organizations keep media and metadata on their own infrastructure, join from the web, and later connect existing identity systems via SSO and a public API. Phase 0–1 ship a branded Next.js app on a local LiveKit SFU: a real 25-person meeting with camera/mic, screen share, public and private chat, raise hand, moderator controls, room password, and lobby. Phase 2 (Tasks 25–40), Phase 3 (Tasks 41–59), and Phase 4 (Tasks 60–84) are split into S/M tasks; implement one numbered task per session.
 
 Source spec: [docs/implement-plan.md](../docs/implement-plan.md). This repo is greenfield except for that spec. Do not start application code until a human asks to implement a numbered task.
 
@@ -1494,7 +1494,7 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 ### Task 52: Helm chart for web, Postgres, Redis, MinIO
 
-**Description:** `infra/helm/sru-conf` deploys the app and data stores. Compose remains the documented small-org path.
+**Description:** `infra/helm/sru-meeting` deploys the app and data stores. Compose remains the documented small-org path.
 
 **Acceptance criteria:**
 
@@ -1505,11 +1505,11 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 **Verification:**
 
 - [x] Tests pass: existing suite
-- [x] Manual check: `helm template sru infra/helm/sru-conf` (or documented equivalent)
+- [x] Manual check: `helm template sru infra/helm/sru-meeting` (or documented equivalent)
 
 **Dependencies:** Tasks 2, 24
 
-**Files likely touched:** `infra/helm/sru-conf/Chart.yaml`, `infra/helm/sru-conf/values.yaml`, `infra/README.md`
+**Files likely touched:** `infra/helm/sru-meeting/Chart.yaml`, `infra/helm/sru-meeting/values.yaml`, `infra/README.md`
 
 **Estimated scope:** Medium: 3-5 files
 

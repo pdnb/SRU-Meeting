@@ -2,9 +2,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "sru-conf.web.fullname" . }}
+  name: {{ include "sru-meeting.web.fullname" . }}
   labels:
-    {{- include "sru-conf.labels" . | nindent 4 }}
+    {{- include "sru-meeting.labels" . | nindent 4 }}
     app.kubernetes.io/component: web
 spec:
   replicas: {{ .Values.web.replicaCount }}
@@ -45,37 +45,37 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sru-conf.secretName" . }}
+                  name: {{ include "sru-meeting.secretName" . }}
                   key: DATABASE_URL
             - name: AUTH_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sru-conf.secretName" . }}
+                  name: {{ include "sru-meeting.secretName" . }}
                   key: AUTH_SECRET
             - name: LIVEKIT_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sru-conf.secretName" . }}
+                  name: {{ include "sru-meeting.secretName" . }}
                   key: LIVEKIT_API_KEY
             - name: LIVEKIT_API_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sru-conf.secretName" . }}
+                  name: {{ include "sru-meeting.secretName" . }}
                   key: LIVEKIT_API_SECRET
             - name: S3_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sru-conf.secretName" . }}
+                  name: {{ include "sru-meeting.secretName" . }}
                   key: S3_ACCESS_KEY
             - name: S3_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sru-conf.secretName" . }}
+                  name: {{ include "sru-meeting.secretName" . }}
                   key: S3_SECRET_KEY
             - name: INTERNAL_CRON_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sru-conf.secretName" . }}
+                  name: {{ include "sru-meeting.secretName" . }}
                   key: INTERNAL_CRON_SECRET
           readinessProbe:
             httpGet:
@@ -93,9 +93,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "sru-conf.web.fullname" . }}
+  name: {{ include "sru-meeting.web.fullname" . }}
   labels:
-    {{- include "sru-conf.labels" . | nindent 4 }}
+    {{- include "sru-meeting.labels" . | nindent 4 }}
     app.kubernetes.io/component: web
 spec:
   type: {{ .Values.web.service.type }}

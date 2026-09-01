@@ -1,4 +1,4 @@
-export const CALLKEEP_APP_NAME = "SRU Conf";
+export const CALLKEEP_APP_NAME = "SRU Meeting";
 
 export type CallKeepSetupOptions = {
   ios: { appName: string };
@@ -26,15 +26,15 @@ export function callKeepSetupOptions(): CallKeepSetupOptions {
     android: {
       alertTitle: "Phone account access",
       alertDescription:
-        "SRU Conf uses the system call UI for incoming meetings.",
+        "SRU Meeting uses the system call UI for incoming meetings.",
       cancelButton: "Cancel",
       okButton: "OK",
       imageName: "phone_account_icon",
       additionalPermissions: [],
       foregroundService: {
-        channelId: "com.sru.conf.calls",
+        channelId: "com.sru.meeting.calls",
         channelName: "Meeting calls",
-        notificationTitle: "SRU Conf meeting in progress",
+        notificationTitle: "SRU Meeting meeting in progress",
       },
     },
   };

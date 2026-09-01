@@ -33,12 +33,12 @@ config:
   insecure: true
   health_port: 8081
   redis:
-    address: sru-sru-conf-redis:6379
+    address: sru-sru-meeting-redis:6379
   s3:
     access_key: REPLACE_ME
     secret: REPLACE_ME
     region: us-east-1
-    endpoint: http://sru-sru-conf-minio:9000
+    endpoint: http://sru-sru-meeting-minio:9000
     bucket: sru-chat
     force_path_style: true
 

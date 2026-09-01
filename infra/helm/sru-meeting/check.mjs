@@ -1,6 +1,6 @@
 /**
  * Guards Helm values against committed local Compose credentials.
- * Run: node infra/helm/sru-conf/check.mjs
+ * Run: node infra/helm/sru-meeting/check.mjs
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";

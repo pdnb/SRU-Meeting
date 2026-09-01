@@ -4,7 +4,7 @@
 
 openapi: "3.0.3"
 info:
-  title: SRU-Conf API
+  title: SRU-Meeting API
   description: >
     Phase 1–3 HTTP surface for rooms, tokens, recording, breakouts, API keys, and
     webhooks. Browser sessions use cookies. Integrations use HMAC headers.

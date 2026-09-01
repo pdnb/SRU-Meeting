@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "SRU-Conf embed",
+  title: "SRU-Meeting embed",
   robots: {
     index: false,
     follow: false,

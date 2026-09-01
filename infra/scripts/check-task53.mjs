@@ -31,7 +31,7 @@ for (const image of [
   "livekit/livekit-server",
   "livekit/egress",
   "coturn/coturn",
-  "sru-conf/web",
+  "sru-meeting/web",
   "postgres:16-alpine",
   "redis:7-alpine",
   "minio/minio",

@@ -1,13 +1,17 @@
 "use client";
 
+import { Clock } from "lucide-react";
 import { useEffect, useState } from "react";
+import { MeetingLobbyShell } from "@/components/meeting/chrome/MeetingLobbyShell";
 
 export function WaitingRoom({
   roomId,
+  roomName,
   onAdmitted,
   onDenied,
 }: {
   roomId: string;
+  roomName?: string;
   onAdmitted: () => void;
   onDenied: () => void;
 }) {
@@ -39,12 +43,19 @@ export function WaitingRoom({
   }, [onAdmitted, onDenied, roomId]);
 
   return (
-    <div className="sru-meet items-center justify-center px-page text-center">
-      <h1 className="font-sans text-display font-semibold">Waiting for host</h1>
-      <p role="status" className="mt-4 max-w-md text-body sru-meet-muted">
-        The host was notified. You will join the same room when they admit you.
-        Current status: {status}.
-      </p>
-    </div>
+    <MeetingLobbyShell roomName={roomName} centered>
+      <div className="sru-meet-lobby-join">
+        <span className="sru-meet-lobby-wait-mark" aria-hidden>
+          <Clock className="h-6 w-6" />
+        </span>
+        <h1>Waiting for host</h1>
+        <p role="status" className="m-0 max-w-md text-body sru-meet-muted">
+          The host was notified. You will join the same room when they admit you.
+        </p>
+        <p className="m-0 text-caption sru-meet-muted">
+          Status: {status}
+        </p>
+      </div>
+    </MeetingLobbyShell>
   );
 }

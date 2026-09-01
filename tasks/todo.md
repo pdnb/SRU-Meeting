@@ -1,4 +1,4 @@
-# SRU-Conf Task List
+# SRU-Meeting Task List
 
 Use with [plan.md](plan.md). Check a box only when that task’s acceptance criteria and verification steps are done. Implement one numbered task per session. Phase 2–4 epics are split into S/M tasks — work the numbered tasks below, not epic rows.
 

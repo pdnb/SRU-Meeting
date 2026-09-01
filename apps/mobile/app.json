@@ -1,22 +1,22 @@
 {
   "expo": {
-    "name": "SRU Conf",
-    "slug": "sru-conf",
+    "name": "SRU Meeting",
+    "slug": "sru-meeting",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sru.conf",
+      "bundleIdentifier": "com.sru.meeting",
       "infoPlist": {
-        "NSCameraUsageDescription": "SRU Conf needs the camera for meetings.",
-        "NSMicrophoneUsageDescription": "SRU Conf needs the microphone for meetings.",
+        "NSCameraUsageDescription": "SRU Meeting needs the camera for meetings.",
+        "NSMicrophoneUsageDescription": "SRU Meeting needs the microphone for meetings.",
         "UIBackgroundModes": ["audio", "voip", "picture-in-picture"]
       }
     },
     "android": {
-      "package": "com.sru.conf",
+      "package": "com.sru.meeting",
       "permissions": [
         "CAMERA",
         "RECORD_AUDIO",

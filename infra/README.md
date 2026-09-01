@@ -1,8 +1,8 @@
 # Local media stack
 
-**Docker Compose is the local / small-org default.** Use this file for day-to-day development. Kubernetes/Helm (`infra/helm/sru-conf`) is optional for production-style deploys and does **not** replace Compose for local work.
+**Docker Compose is the local / small-org default.** Use this file for day-to-day development. Kubernetes/Helm (`infra/helm/sru-meeting`) is optional for production-style deploys and does **not** replace Compose for local work.
 
-One-command local data and media plane for SRU-Conf: LiveKit, Redis, Postgres, coturn, MinIO, and an isolated LiveKit Egress worker (recording).
+One-command local data and media plane for SRU-Meeting: LiveKit, Redis, Postgres, coturn, MinIO, and an isolated LiveKit Egress worker (recording).
 
 ```powershell
 docker compose -f infra/docker-compose.yml up -d
@@ -174,16 +174,16 @@ When a room has the lobby enabled:
 
 | Path | Role |
 |------|------|
-| `infra/helm/sru-conf` | Web, Postgres, Redis, MinIO |
+| `infra/helm/sru-meeting` | Web, Postgres, Redis, MinIO |
 | `infra/helm/livekit-values.yaml` | Overlay for official `livekit/livekit-server` (Redis + `podHostNetwork`, one SFU pod per node) |
 | `infra/helm/media` + `egress-values.yaml` / `coturn-values.yaml` | Egress and coturn as **separate** workloads from the SFU |
 | `infra/scripts/save-images.sh` | Air-gap image list (dry-run by default) |
 
 ```powershell
-helm template sru infra/helm/sru-conf
+helm template sru infra/helm/sru-meeting
 helm template egress infra/helm/media -f infra/helm/egress-values.yaml
 helm template coturn infra/helm/media -f infra/helm/coturn-values.yaml
-node infra/helm/sru-conf/check.mjs
+node infra/helm/sru-meeting/check.mjs
 node infra/scripts/check-task53.mjs
 bash infra/scripts/save-images.sh
 ```

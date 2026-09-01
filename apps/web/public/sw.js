@@ -1,4 +1,4 @@
-/* SRU-Conf app-shell service worker. Do not cache API, WebSocket, or LiveKit. */
+/* SRU-Meeting app-shell service worker. Do not cache API, WebSocket, or LiveKit. */
 const CACHE = "sru-shell-v1";
 const SHELL = ["/", "/login", "/icon.svg"];
 

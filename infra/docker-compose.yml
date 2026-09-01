@@ -1,4 +1,4 @@
-# Local media/data plane for SRU-Conf.
+# Local media/data plane for SRU-Meeting.
 # Start: docker compose -f infra/docker-compose.yml up -d
 #
 # Official sources:
@@ -18,7 +18,7 @@
 #
 # Credentials below are local-dev only (localhost). Do not reuse in production.
 
-name: sru-conf
+name: sru-meeting
 
 services:
   redis:

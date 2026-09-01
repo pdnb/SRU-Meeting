@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "sru-conf.postgres.fullname" . }}
+  name: {{ include "sru-meeting.postgres.fullname" . }}
   labels:
-    {{- include "sru-conf.labels" . | nindent 4 }}
+    {{- include "sru-meeting.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgres
 spec:
   type: ClusterIP
@@ -19,12 +19,12 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "sru-conf.postgres.fullname" . }}
+  name: {{ include "sru-meeting.postgres.fullname" . }}
   labels:
-    {{- include "sru-conf.labels" . | nindent 4 }}
+    {{- include "sru-meeting.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgres
 spec:
-  serviceName: {{ include "sru-conf.postgres.fullname" . }}
+  serviceName: {{ include "sru-meeting.postgres.fullname" . }}
   replicas: 1
   selector:
     matchLabels:
@@ -51,7 +51,7 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sru-conf.secretName" . }}
+                  name: {{ include "sru-meeting.secretName" . }}
                   key: POSTGRES_PASSWORD
           readinessProbe:
             exec:

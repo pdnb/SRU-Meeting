@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "sru-conf.minio.fullname" . }}
+  name: {{ include "sru-meeting.minio.fullname" . }}
   labels:
-    {{- include "sru-conf.labels" . | nindent 4 }}
+    {{- include "sru-meeting.labels" . | nindent 4 }}
     app.kubernetes.io/component: minio
 spec:
   type: ClusterIP
@@ -22,12 +22,12 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "sru-conf.minio.fullname" . }}
+  name: {{ include "sru-meeting.minio.fullname" . }}
   labels:
-    {{- include "sru-conf.labels" . | nindent 4 }}
+    {{- include "sru-meeting.labels" . | nindent 4 }}
     app.kubernetes.io/component: minio
 spec:
-  serviceName: {{ include "sru-conf.minio.fullname" . }}
+  serviceName: {{ include "sru-meeting.minio.fullname" . }}
   replicas: 1
   selector:
     matchLabels:
@@ -57,12 +57,12 @@ spec:
             - name: MINIO_ROOT_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sru-conf.secretName" . }}
+                  name: {{ include "sru-meeting.secretName" . }}
                   key: MINIO_ROOT_USER
             - name: MINIO_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sru-conf.secretName" . }}
+                  name: {{ include "sru-meeting.secretName" . }}
                   key: MINIO_ROOT_PASSWORD
           readinessProbe:
             httpGet:

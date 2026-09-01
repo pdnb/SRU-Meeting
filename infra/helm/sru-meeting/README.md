@@ -1,4 +1,4 @@
-# Helm: sru-conf (web + data stores)
+# Helm: sru-meeting (web + data stores)
 
 Kubernetes chart for the **web** app plus **Postgres**, **Redis**, and **MinIO**.
 
@@ -9,7 +9,7 @@ LiveKit SFU, coturn, and egress values live under `infra/helm/` (see `infra/READ
 ## Render (no cluster required)
 
 ```powershell
-helm template sru infra/helm/sru-conf
+helm template sru infra/helm/sru-meeting
 ```
 
 Or from this directory:
@@ -23,7 +23,7 @@ helm template sru .
 `values.yaml` uses `REPLACE_ME` only — never commit real secrets.
 
 ```powershell
-helm upgrade --install sru infra/helm/sru-conf `
+helm upgrade --install sru infra/helm/sru-meeting `
   --set postgres.auth.password=$env:POSTGRES_PASSWORD `
   --set minio.auth.rootUser=$env:MINIO_ROOT_USER `
   --set minio.auth.rootPassword=$env:MINIO_ROOT_PASSWORD `
@@ -33,8 +33,8 @@ helm upgrade --install sru infra/helm/sru-conf `
   --set web.secrets.s3AccessKey=$env:S3_ACCESS_KEY `
   --set web.secrets.s3SecretKey=$env:S3_SECRET_KEY `
   --set web.secrets.internalCronSecret=$env:INTERNAL_CRON_SECRET `
-  --set web.env.S3_ENDPOINT="http://sru-sru-conf-minio:9000" `
-  --set web.env.S3_INTERNAL_ENDPOINT="http://sru-sru-conf-minio:9000"
+  --set web.env.S3_ENDPOINT="http://sru-sru-meeting-minio:9000" `
+  --set web.env.S3_INTERNAL_ENDPOINT="http://sru-sru-meeting-minio:9000"
 ```
 
 Prefer `web.secrets.existingSecret` pointing at a sealed/external Secret in production.

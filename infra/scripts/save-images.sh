@@ -23,7 +23,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     -h|--help)
       cat <<'EOF'
-save-images.sh — list (default) or pull+save images for air-gapped SRU-Conf installs.
+save-images.sh — list (default) or pull+save images for air-gapped SRU-Meeting installs.
 
   --execute   Actually docker pull and docker save (default is dry-run)
   --out DIR   Output directory for .tar files (default: ./airgap-images)
@@ -45,13 +45,13 @@ IMAGES=(
   "livekit/livekit-server:v1.13.6"
   "livekit/egress:v1.10.0"
   "coturn/coturn:4.17"
-  "sru-conf/web:latest"
+  "sru-meeting/web:latest"
   "postgres:16-alpine"
   "redis:7-alpine"
   "minio/minio:latest"
 )
 
-echo "SRU-Conf air-gap image list (${#IMAGES[@]} images)"
+echo "SRU-Meeting air-gap image list (${#IMAGES[@]} images)"
 echo "Mode: $([[ "$EXECUTE" -eq 1 ]] && echo execute || echo dry-run)"
 echo
 

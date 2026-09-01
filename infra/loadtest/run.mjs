@@ -46,7 +46,7 @@ function summarizeJoinSamples(samplesMs, budgetMs = JOIN_BUDGET_MS) {
 }
 
 function printHelp() {
-  console.log(`sru-conf loadtest — Compose LiveKit join-time check (small N)
+  console.log(`sru-meeting loadtest — Compose LiveKit join-time check (small N)
 
 Usage:
   node infra/loadtest/run.mjs --help
@@ -172,7 +172,7 @@ async function main() {
     return;
   }
 
-  console.log("SRU-Conf Compose loadtest (small N — not a 500-user run)");
+  console.log("SRU-Meeting Compose loadtest (small N — not a 500-user run)");
   console.log(`  url:           ${opts.url}`);
   console.log(`  room:          ${opts.room}`);
   console.log(`  participants:  ${opts.participants}`);

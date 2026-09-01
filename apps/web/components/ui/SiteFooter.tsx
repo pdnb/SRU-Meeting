@@ -5,7 +5,7 @@ export function SiteFooter() {
     <footer className="border-t border-line bg-surface">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-page py-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-body font-medium text-ink">SRU-Conf</p>
+          <p className="text-body font-medium text-ink">SRU-Meeting</p>
           <p className="mt-1 text-caption text-muted">
             Self-hosted campus video conference
           </p>

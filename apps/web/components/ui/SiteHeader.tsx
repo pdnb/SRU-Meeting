@@ -21,7 +21,7 @@ export function SiteHeader({
         >
           <LogoMark />
           <span className="font-sans text-body font-semibold tracking-tight">
-            SRU-Conf
+            SRU-Meeting
           </span>
         </Link>
         {nav && nav.length > 0 ? (

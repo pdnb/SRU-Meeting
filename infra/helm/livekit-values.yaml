@@ -38,7 +38,7 @@ livekit:
   log_level: info
   # Redis is required for multi-node / room state. Point at the Task 52 Redis Service.
   redis:
-    address: sru-sru-conf-redis:6379
+    address: sru-sru-meeting-redis:6379
   rtc:
     tcp_port: 7881
     port_range_start: 50000
