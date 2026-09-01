@@ -23,6 +23,9 @@ const PHASE1_PATHS = [
   "/api/v1/rooms/{id}/recording",
   "/api/v1/rooms/{id}/breakouts",
   "/api/v1/rooms/{id}/streaming",
+  "/api/v1/rooms/{id}/polls",
+  "/api/v1/rooms/{id}/questions",
+  "/api/v1/rooms/{id}/whiteboard",
   "/api/v1/keys",
   "/api/v1/webhooks",
 ] as const;
@@ -34,6 +37,9 @@ const REQUIRED_OPERATIONS: Record<string, string[]> = {
   "/api/v1/rooms/{id}/recording": ["post", "delete", "get"],
   "/api/v1/rooms/{id}/breakouts": ["post", "get", "delete", "patch"],
   "/api/v1/rooms/{id}/streaming": ["post", "delete", "get", "patch"],
+  "/api/v1/rooms/{id}/polls": ["post", "get", "delete"],
+  "/api/v1/rooms/{id}/questions": ["post", "get", "patch"],
+  "/api/v1/rooms/{id}/whiteboard": ["post", "get", "delete"],
   "/api/v1/keys": ["get", "post"],
   "/api/v1/webhooks": ["get", "post"],
 };
@@ -75,6 +81,22 @@ const ZOD_SCHEMA_NAMES = new Set([
   "StartStreamRequestSchema",
   "UpdateStreamRequestSchema",
   "StreamSchema",
+  "PollStatusSchema",
+  "PollOptionSchema",
+  "PollSchema",
+  "CreatePollRequestSchema",
+  "VotePollRequestSchema",
+  "PollPacketSchema",
+  "QuestionStatusSchema",
+  "QuestionSchema",
+  "SubmitQuestionRequestSchema",
+  "ModerateQuestionRequestSchema",
+  "QaPacketSchema",
+  "WhiteboardSessionStatusSchema",
+  "WhiteboardSessionSchema",
+  "OpenWhiteboardRequestSchema",
+  "CloseWhiteboardRequestSchema",
+  "WhiteboardPacketSchema",
 ]);
 
 const REQUIRED_SCHEMA_NAMES = [

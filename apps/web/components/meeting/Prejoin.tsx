@@ -1,7 +1,17 @@
 "use client";
 
 import type { Room } from "@sru/shared";
+import { createLocalVideoTrack, LocalVideoTrack } from "livekit-client";
 import { useEffect, useRef, useState } from "react";
+import { VirtualBackgroundControl } from "@/components/meeting/VirtualBackgroundControl";
+import { useNoiseSuppressionPreference } from "@/components/meeting/useNoiseSuppressionPreference";
+import { useVirtualBackgroundPreference } from "@/components/meeting/useVirtualBackgroundPreference";
+import {
+  applyVirtualBackgroundToTrack,
+  isNoiseSuppressionSupported,
+  isVirtualBackgroundSupported,
+  readVirtualBackgroundPreference,
+} from "@/lib/livekit/track-processors";
 
 export type PrejoinResult = {
   audio: boolean;
@@ -22,34 +32,72 @@ export function Prejoin({
   onJoin: (result: PrejoinResult) => Promise<void>;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const previewTrackRef = useRef<LocalVideoTrack | null>(null);
   const [audio, setAudio] = useState(true);
   const [video, setVideo] = useState(true);
   const [password, setPassword] = useState("");
   const [name, setName] = useState(defaultName ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [noiseSuppression, setNoiseSuppression] =
+    useNoiseSuppressionPreference();
+  const [virtualBackground] = useVirtualBackgroundPreference();
+  const noiseSupported = isNoiseSuppressionSupported();
+  const backgroundSupported = isVirtualBackgroundSupported();
 
   useEffect(() => {
-    let stream: MediaStream | null = null;
     if (!video) {
+      previewTrackRef.current?.stop();
+      previewTrackRef.current = null;
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
       return;
     }
-    void navigator.mediaDevices
-      .getUserMedia({ video: true, audio: false })
-      .then((next) => {
-        stream = next;
-        if (videoRef.current) {
-          videoRef.current.srcObject = next;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const track = await createLocalVideoTrack();
+        if (cancelled) {
+          track.stop();
+          return;
         }
-      })
-      .catch(() => {
-        setVideo(false);
-        setError("Camera is not available. You can still join with audio.");
-      });
+        previewTrackRef.current?.stop();
+        previewTrackRef.current = track;
+        if (backgroundSupported) {
+          await applyVirtualBackgroundToTrack(
+            track,
+            readVirtualBackgroundPreference(),
+          );
+        }
+        if (videoRef.current) {
+          track.attach(videoRef.current);
+        }
+      } catch {
+        if (!cancelled) {
+          setVideo(false);
+          setError("Camera is not available. You can still join with audio.");
+        }
+      }
+    })();
+
     return () => {
-      stream?.getTracks().forEach((track) => track.stop());
+      cancelled = true;
+      previewTrackRef.current?.stop();
+      previewTrackRef.current = null;
     };
-  }, [video]);
+  }, [video, backgroundSupported]);
+
+  useEffect(() => {
+    const track = previewTrackRef.current;
+    if (!track || !backgroundSupported || !video) {
+      return;
+    }
+    void applyVirtualBackgroundToTrack(track, virtualBackground).catch(() => {
+      // Preview background is best-effort before join.
+    });
+  }, [virtualBackground, backgroundSupported, video]);
 
   return (
     <div className="sru-meet items-center justify-center overflow-y-auto px-page py-10">
@@ -132,7 +180,24 @@ export function Prejoin({
             >
               {video ? "Camera on" : "Camera off"}
             </button>
+            {noiseSupported ? (
+              <button
+                type="button"
+                className="sru-meet-btn"
+                aria-pressed={noiseSuppression}
+                onClick={() => {
+                  setNoiseSuppression(!noiseSuppression);
+                }}
+              >
+                {noiseSuppression ? "Noise reduction on" : "Reduce noise"}
+              </button>
+            ) : (
+              <span className="text-caption text-zinc-400 self-center">
+                Noise reduction unavailable in this browser
+              </span>
+            )}
           </div>
+          <VirtualBackgroundControl showUnsupportedNotice compact />
           {error ? (
             <p role="alert" className="sru-error">
               {error}

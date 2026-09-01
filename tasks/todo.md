@@ -1,6 +1,6 @@
 # SRU-Conf Task List
 
-Use with [plan.md](plan.md). Check a box only when that task’s acceptance criteria and verification steps are done. Implement one numbered task per session. Split Phase 2–3 epics into S/M tasks before building them.
+Use with [plan.md](plan.md). Check a box only when that task’s acceptance criteria and verification steps are done. Implement one numbered task per session. Phase 2–4 epics are split into S/M tasks — work the numbered tasks below, not epic rows.
 
 Standing bar for every S/M task: criteria met, verification run, `pnpm --filter web build` still works, no secrets committed, Compose + `pnpm --filter web dev` still runs.
 
@@ -181,16 +181,94 @@ Do not treat the E3.* rows as build units. Work the numbered tasks below. WHEP /
 
 ---
 
-## Phase 4: Parked
+## Phase 4: Polish & Growth (S/M tasks — split 2026-09-01)
 
-Do not pull into a sprint without a new task breakdown.
+Do not treat parked epic rows as build units. Work the numbered tasks below. Ship order: media (60–62) → engagement (63–68) → transcription plumbing (69–72, STT deferred) → analytics (73–76) → SCIM (77–80) → E2EE last (81–84).
 
-- [ ] Virtual background / noise suppression
-- [ ] Whiteboard, polls, Q&A
-- [ ] AI transcription / meeting summary
-- [ ] E2EE with Insertable Streams
-- [ ] Analytics dashboard
-- [ ] SCIM 2.0
+### Wave 1: Media polish
+
+- [x] **Task 60:** Noise suppression with track processors
+- [x] **Task 61:** Virtual background (blur + presets)
+- [x] **Task 62:** Mobile noise suppression parity
+
+### Checkpoint: Media polish (after Tasks 60–62)
+
+- [x] Web: noise filter + virtual background work in prejoin and meeting
+- [ ] Remote participant sees background effect
+- [x] Application still builds
+- [ ] Review with human before engagement epic
+
+### Wave 2: Engagement — polls, Q&A, whiteboard
+
+- [x] **Task 63:** Polls schema + API + contracts
+- [x] **Task 64:** Polls UI + realtime results
+- [x] **Task 65:** Q&A schema + submit API
+- [x] **Task 66:** Q&A moderator + participant panels
+- [x] **Task 67:** Whiteboard contracts + session model
+- [x] **Task 68:** Collaborative whiteboard panel (tldraw)
+
+### Checkpoint: Engagement (after Tasks 63–68)
+
+- [ ] Poll create/vote/close works two-browser
+- [ ] Q&A submit and moderator queue works
+- [ ] Whiteboard sync works two-browser
+- [ ] Review with human before transcription wave
+
+### Wave 3: Transcription & summary — schema/UI only
+
+- [ ] **Task 69:** Transcript schema + contracts
+- [ ] **Task 70:** Transcript viewer UI
+- [ ] **Task 71:** Transcription worker interface + enqueue hook (stub; no STT yet)
+- [ ] **Task 72:** Meeting summary placeholder
+
+### Checkpoint: Transcription plumbing (after Tasks 69–72)
+
+- [ ] Recording finish enqueues transcript job (stub)
+- [ ] Transcript viewer renders seeded segments
+- [ ] Summary placeholder visible
+- [ ] **Human decision:** choose STT provider (Whisper vs cloud) before real Task 71 provider
+- [ ] Review with human before analytics wave
+
+### Wave 4: Analytics dashboard
+
+- [ ] **Task 73:** Metrics rollup schema + nightly job
+- [ ] **Task 74:** Analytics API
+- [ ] **Task 75:** Analytics dashboard UI
+- [ ] **Task 76:** Client QoS stats reporting
+
+### Checkpoint: Analytics (after Tasks 73–76)
+
+- [ ] Rollup job populates metrics
+- [ ] Admin charts and CSV export work
+- [ ] Review with human before SCIM wave
+
+### Wave 5: SCIM 2.0
+
+- [ ] **Task 77:** SCIM bearer auth + admin token management
+- [ ] **Task 78:** SCIM Users endpoints
+- [ ] **Task 79:** SCIM Groups → orgRole mapping
+- [ ] **Task 80:** SCIM audit + documentation
+
+### Checkpoint: SCIM (after Tasks 77–80)
+
+- [ ] IdP test tenant can provision and deprovision a user
+- [ ] Group mapping updates role
+- [ ] Review with human before E2EE wave
+
+### Wave 6: E2EE — last
+
+- [ ] **Task 81:** E2EE room policy + token gate
+- [ ] **Task 82:** E2EE audio — Insertable Streams
+- [ ] **Task 83:** E2EE video — Insertable Streams
+- [ ] **Task 84:** E2EE product limits + mobile/embed stance
+
+### Checkpoint: Phase 4 complete (after Tasks 81–84)
+
+- [ ] All six epics meet their task acceptance criteria
+- [ ] STT provider chosen and Task 71 stub replaced (follow-on)
+- [ ] E2EE human review completed before any pilot
+- [ ] Application still builds; Compose + dev still run
+- [ ] Ready for Phase 4 release review
 
 ---
 
@@ -205,3 +283,5 @@ Safe after Task 14: Task 15 with Task 16.
 Keep sequential: Compose → Prisma → Auth → Rooms → Tokens; Task 22 after Task 20.
 
 Phase 3: Task 41 before 42–46; 47 after 25–26; 50 after 11 and 34; 53 after 52; 55 after 54; native 56–59 last.
+
+Phase 4: 60 → 61 → 62; 63/65/67 can start after prior waves; 64 after 63, 66 after 65, 68 after 67; 69–72 sequential; 73–76 sequential; 77–80 sequential; 81–84 sequential (E2EE last).

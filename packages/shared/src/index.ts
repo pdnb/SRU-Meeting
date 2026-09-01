@@ -102,3 +102,47 @@ export {
   type BreakoutActionRequest,
   type BreakoutPacket,
 } from "./breakout";
+
+export {
+  PollStatusSchema,
+  PollOptionSchema,
+  PollSchema,
+  CreatePollRequestSchema,
+  VotePollRequestSchema,
+  PollPacketSchema,
+  POLL_DATA_TOPIC,
+  type PollStatus,
+  type PollOption,
+  type Poll,
+  type CreatePollRequest,
+  type VotePollRequest,
+  type PollPacket,
+} from "./poll";
+
+export {
+  QuestionStatusSchema,
+  QuestionSchema,
+  SubmitQuestionRequestSchema,
+  ModerateQuestionRequestSchema,
+  QaPacketSchema,
+  QA_DATA_TOPIC,
+  type QuestionStatus,
+  type Question,
+  type SubmitQuestionRequest,
+  type ModerateQuestionRequest,
+  type QaPacket,
+} from "./question";
+
+export {
+  WhiteboardSessionStatusSchema,
+  WhiteboardSessionSchema,
+  OpenWhiteboardRequestSchema,
+  CloseWhiteboardRequestSchema,
+  WhiteboardPacketSchema,
+  WHITEBOARD_DATA_TOPIC,
+  type WhiteboardSessionStatus,
+  type WhiteboardSession,
+  type OpenWhiteboardRequest,
+  type CloseWhiteboardRequest,
+  type WhiteboardPacket,
+} from "./whiteboard";

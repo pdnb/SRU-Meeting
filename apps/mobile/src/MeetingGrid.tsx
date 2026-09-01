@@ -27,6 +27,7 @@ import {
   nextMicrophoneEnabled,
   shouldShowModeratorChrome,
 } from "./token-grant";
+import { useMobileNoiseSuppression } from "./useMobileNoiseSuppression";
 
 type MeetingGridProps = {
   /** Existing join JWT — moderator chrome reads roomAdmin from this token only. */
@@ -45,6 +46,7 @@ export function MeetingGrid({ token, onLeave, error }: MeetingGridProps) {
   );
 
   const showModeratorChrome = shouldShowModeratorChrome(token);
+  const noise = useMobileNoiseSuppression();
   const columns = gridColumnsForCount(Math.max(tracks.length, 1));
   const tileWidth = (width - 24 - (columns - 1) * 8) / columns;
 
@@ -156,6 +158,20 @@ export function MeetingGrid({ token, onLeave, error }: MeetingGridProps) {
             {isMicrophoneEnabled ? "Mute" : "Unmute"}
           </Text>
         </Pressable>
+        {noise.supported ? (
+          <Pressable
+            style={[
+              styles.toolbarButton,
+              noise.enabled && styles.toolbarButtonActive,
+            ]}
+            disabled={noise.pending}
+            onPress={() => noise.setEnabled(!noise.enabled)}
+          >
+            <Text style={styles.toolbarButtonText}>
+              {noise.enabled ? "Noise reduction on" : "Reduce noise"}
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
@@ -223,5 +239,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   toolbarButtonMuted: { backgroundColor: "#5a2b2b" },
+  toolbarButtonActive: { backgroundColor: "#1f4d3a" },
   toolbarButtonText: { color: "#fff", fontWeight: "700" },
 });

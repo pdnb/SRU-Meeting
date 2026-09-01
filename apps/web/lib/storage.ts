@@ -117,6 +117,22 @@ export async function uploadAttachment(input: {
   return key;
 }
 
+export async function putObject(
+  key: string,
+  body: Uint8Array,
+  contentType: string,
+): Promise<void> {
+  const { client, bucket } = await ensureBucket();
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    }),
+  );
+}
+
 export async function signDownloadUrl(
   key: string,
   expiresIn = SIGNED_URL_EXPIRES_SECONDS,

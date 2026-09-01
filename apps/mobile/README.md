@@ -28,6 +28,27 @@ Optional: set `EXPO_PUBLIC_WEB_API_URL` (default `http://127.0.0.1:3000`). On an
 - **Mute / unmute** toggles the local microphone track
 - **Moderator** badge appears only when `roomAdmin` is already in the join JWT (no second client grant)
 
+## Noise suppression (Task 62)
+
+- Uses `@livekit/react-native-krisp-noise-filter` on the local microphone track after join (`src/useMobileNoiseSuppression.ts`)
+- **Reduce noise** toggle in the meeting toolbar; preference is kept for the app session via `src/noise-suppression.ts`
+- Requires a **dev build** rebuild after adding the Krisp native module (same as LiveKit WebRTC — not Expo Go)
+
+| Platform | Noise suppression | Notes |
+| --- | --- | --- |
+| iOS (dev build) | Supported | Native Krisp module in rebuilt dev client |
+| Android (dev build) | Supported | Rebuild after install |
+| Expo Go | Not supported | WebRTC + Krisp require a dev build |
+| Web | Supported | See `apps/web` Task 60 controls |
+
+Unsupported builds hide the toggle and continue with the raw microphone — no crash. Virtual backgrounds remain **web-only** (Task 61).
+
+### Manual check
+
+1. Mint a token and join with mic enabled.
+2. Tap **Reduce noise** — the button should show **Noise reduction on** without disconnecting.
+3. Mute/unmute still works with the filter attached.
+
 ## PiP + background audio (Task 58)
 
 Logic lives in `src/pip.ts` and is wired from `MeetingGrid` / `App.tsx`.

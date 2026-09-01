@@ -2,7 +2,7 @@
 
 ## Overview
 
-SRU-Conf is a self-hosted video conference platform. Organizations keep media and metadata on their own infrastructure, join from the web, and later connect existing identity systems via SSO and a public API. Phase 0–1 ship a branded Next.js app on a local LiveKit SFU: a real 25-person meeting with camera/mic, screen share, public and private chat, raise hand, moderator controls, room password, and lobby. Phase 2 (Tasks 25–40) and Phase 3 (Tasks 41–59) are split into S/M tasks; implement one numbered task per session.
+SRU-Conf is a self-hosted video conference platform. Organizations keep media and metadata on their own infrastructure, join from the web, and later connect existing identity systems via SSO and a public API. Phase 0–1 ship a branded Next.js app on a local LiveKit SFU: a real 25-person meeting with camera/mic, screen share, public and private chat, raise hand, moderator controls, room password, and lobby. Phase 2 (Tasks 25–40), Phase 3 (Tasks 41–59), and Phase 4 (Tasks 60–84) are split into S/M tasks; implement one numbered task per session.
 
 Source spec: [docs/implement-plan.md](../docs/implement-plan.md). This repo is greenfield except for that spec. Do not start application code until a human asks to implement a numbered task.
 
@@ -150,6 +150,43 @@ Saved 2026-08-31 as git tag `checkpoint/phase-1-mvp`. Two-browser A/V and passwo
 
 - [ ] Pen-test and load-test gates passed
 - [ ] Ready for Production Release 1.0 review
+
+### Phase 4: Polish & Growth (S/M tasks — split 2026-09-01)
+
+Ship order: media polish (60–62) → engagement (63–68) → transcription plumbing (69–72, STT provider deferred) → analytics (73–76) → SCIM (77–80) → E2EE last (81–84).
+
+- [x] Task 60: Noise suppression with track processors
+- [x] Task 61: Virtual background (blur + presets)
+- [x] Task 62: Mobile noise suppression parity
+- [x] Task 63: Polls schema + API + contracts
+- [x] Task 64: Polls UI + realtime results
+- [x] Task 65: Q&A schema + submit API
+- [x] Task 66: Q&A moderator + participant panels
+- [x] Task 67: Whiteboard contracts + session model
+- [x] Task 68: Collaborative whiteboard panel (tldraw)
+- [ ] Task 69: Transcript schema + contracts
+- [ ] Task 70: Transcript viewer UI
+- [ ] Task 71: Transcription worker interface + enqueue hook
+- [ ] Task 72: Meeting summary placeholder
+- [ ] Task 73: Metrics rollup schema + nightly job
+- [ ] Task 74: Analytics API
+- [ ] Task 75: Analytics dashboard UI
+- [ ] Task 76: Client QoS stats reporting
+- [ ] Task 77: SCIM bearer auth + admin token management
+- [ ] Task 78: SCIM Users endpoints
+- [ ] Task 79: SCIM Groups → orgRole mapping
+- [ ] Task 80: SCIM audit + documentation
+- [ ] Task 81: E2EE room policy + token gate
+- [ ] Task 82: E2EE audio — Insertable Streams
+- [ ] Task 83: E2EE video — Insertable Streams
+- [ ] Task 84: E2EE product limits + mobile/embed stance
+
+### Checkpoint: Phase 4 complete
+
+- [ ] All six epics meet their task acceptance criteria
+- [ ] STT provider chosen and Task 71 stub replaced (follow-on)
+- [ ] E2EE human review completed before any pilot
+- [ ] Ready for Phase 4 release review
 
 ---
 
@@ -1652,6 +1689,8 @@ Do not pull these into a sprint without a new task breakdown:
 - After Task 14: Task 15 and Task 16
 - After Task 46: Task 47 (streaming) is independent of remaining native work
 - After Task 11 and 34: Task 50 (embed) is independent of Helm
+- After Tasks 63 and 65: Task 64 (polls UI) with Task 66 (Q&A panel)
+- Task 68 (whiteboard) after Task 67, independent of polls/Q&A
 - Independent tests and docs for already-landed tasks
 
 **Must stay sequential**
@@ -1661,6 +1700,7 @@ Do not pull these into a sprint without a new task breakdown:
 - Recording workers after MinIO + rooms (E2.1)
 - Shared Prisma schema edits (avoid parallel migrate PRs)
 - Task 41 before 42–46; Task 52 before 53; Task 54 before 55; native 56–59 last
+- Phase 4: 60 → 61; 69 → 70 → 71 → 72; 73 → 74 → 75; 77 → 78 → 79 → 80; 81 → 82 → 83 → 84; E2EE wave last
 
 **Needs a contract first**
 
@@ -1681,6 +1721,12 @@ Do not pull these into a sprint without a new task breakdown:
 | Privilege escalation                          | High   | Tasks 19–22 exist to keep authorization on the server                         |
 | Team WebRTC inexperience                      | High   | Adopt LiveKit; fail fast on Task 6 PoC                                        |
 | Recording starving the SFU                    | Med    | Isolated egress pool in E2.1; never colocate with SFU                         |
+| Track processors CPU/battery drain            | Med    | Default noise filter off; blur off on mobile; performance hint in Task 61      |
+| Whiteboard sync conflicts                     | Med    | Versioned packets; REST session as authority on open                          |
+| STT cost / air-gap                            | High   | Deferred provider; interface-first Task 71; Whisper vs cloud decision gate     |
+| E2EE breaks recording/Safari/embed            | High   | Policy gates in Task 81; ship last; explicit degraded matrix in Task 84       |
+| SCIM non-compliance with IdPs                 | Med    | Test against Entra + Okta sandboxes; RFC 7643/7644 subset documented           |
+| Analytics data accuracy                       | Med    | Idempotent rollup; unit tests with fixture join/leave pairs                    |
 
 
 ## Open Questions
@@ -1688,6 +1734,11 @@ Do not pull these into a sprint without a new task breakdown:
 - CI host is assumed to be GitHub Actions. Swap `.github/workflows/ci.yml` if the remote is elsewhere.
 - Branding and visual theme wait until Task 8; there is no design-system repo yet.
 - Create-on-join vs explicit RoomService `createRoom` in Task 10 is left to the implementer as long as Task 11 join works.
+- **STT provider:** Whisper self-hosted vs cloud — decide before replacing Task 71 stub.
+- **Whiteboard library:** Plan assumes **tldraw**; excalidraw is an alternative if licensing differs.
+- **Poll results visibility:** Live results to participants vs host-only — default host-only during voting.
+- **E2EE key management:** v1 uses per-room participant keys via data channel; no MLS in Phase 4.
+- **Multi-org:** Analytics and SCIM assume single-org v1; revisit if true multi-tenancy lands.
 
 ## Definition of Done (every S/M task)
 
@@ -1701,6 +1752,6 @@ Standing bar on top of each task’s acceptance criteria:
 ## How to use this plan
 
 1. Implement one numbered task per session (see [todo.md](todo.md)).
-2. Phase 2 (Tasks 25–40) and Phase 3 (Tasks 41–59) are already split; do not start an E2.* or E3.* row as a build unit.
+2. Phase 2 (Tasks 25–40), Phase 3 (Tasks 41–59), and Phase 4 (Tasks 60–84) are already split; do not start an E2.*, E3.*, or parked epic row as a build unit.
 3. Stop at each checkpoint for a human review.
 

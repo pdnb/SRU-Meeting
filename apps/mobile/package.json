@@ -15,6 +15,7 @@
     "@config-plugins/react-native-webrtc": "^10.0.0",
     "@livekit/react-native": "~2.9.6",
     "@livekit/react-native-expo-plugin": "^1.0.1",
+    "@livekit/react-native-krisp-noise-filter": "^0.0.3",
     "@livekit/react-native-webrtc": "^137.0.2",
     "@sru/shared": "workspace:*",
     "expo": "~52.0.46",

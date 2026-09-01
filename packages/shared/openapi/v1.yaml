@@ -416,6 +416,191 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "422":
           $ref: "#/components/responses/UnprocessableEntity"
+  /api/v1/rooms/{id}/polls:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+    get:
+      tags: [rooms]
+      summary: Open poll for a room
+      operationId: getRoomPoll
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Open poll or null
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: "#/components/schemas/PollSchema"
+                      - type: "null"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      tags: [rooms]
+      summary: Create a poll or cast a vote
+      operationId: postRoomPoll
+      security:
+        - session: []
+        - hmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/CreatePollRequestSchema"
+                - $ref: "#/components/schemas/VotePollRequestSchema"
+      responses:
+        "201":
+          description: Poll created or vote recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      tags: [rooms]
+      summary: Close the open poll
+      operationId: closeRoomPoll
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Poll closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v1/rooms/{id}/questions:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+    get:
+      tags: [rooms]
+      summary: List room questions
+      operationId: listRoomQuestions
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Questions visible in the room
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/QuestionSchema"
+    post:
+      tags: [rooms]
+      summary: Submit a question
+      operationId: submitRoomQuestion
+      security:
+        - session: []
+        - hmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitQuestionRequestSchema"
+      responses:
+        "201":
+          description: Question submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionSchema"
+    patch:
+      tags: [rooms]
+      summary: Moderate or upvote a question
+      operationId: patchRoomQuestion
+      security:
+        - session: []
+        - hmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModerateQuestionRequestSchema"
+      responses:
+        "200":
+          description: Updated question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v1/rooms/{id}/whiteboard:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+    get:
+      tags: [rooms]
+      summary: Open whiteboard session
+      operationId: getRoomWhiteboard
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Open session or null
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: "#/components/schemas/WhiteboardSessionSchema"
+                      - type: "null"
+    post:
+      tags: [rooms]
+      summary: Open a whiteboard session
+      operationId: openRoomWhiteboard
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "201":
+          description: Session opened
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WhiteboardSessionSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      tags: [rooms]
+      summary: Close the whiteboard session
+      operationId: closeRoomWhiteboard
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Session closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WhiteboardSessionSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /api/v1/keys:
     get:
       tags: [keys]
@@ -960,3 +1145,169 @@ components:
           type: string
         body:
           type: string
+    PollStatusSchema:
+      type: string
+      enum: [open, closed]
+    PollOptionSchema:
+      type: object
+      required: [id, label, voteCount]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        voteCount:
+          type: integer
+          minimum: 0
+    PollSchema:
+      type: object
+      required: [id, roomId, question, status, createdById, createdAt, closedAt, options]
+      properties:
+        id:
+          type: string
+        roomId:
+          type: string
+        question:
+          type: string
+        status:
+          $ref: "#/components/schemas/PollStatusSchema"
+        createdById:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/PollOptionSchema"
+        myVoteOptionId:
+          type: string
+          nullable: true
+    CreatePollRequestSchema:
+      type: object
+      required: [question, options]
+      properties:
+        question:
+          type: string
+        options:
+          type: array
+          minItems: 2
+          maxItems: 10
+          items:
+            type: string
+    VotePollRequestSchema:
+      type: object
+      required: [optionId]
+      properties:
+        optionId:
+          type: string
+    PollPacketSchema:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [poll.created, poll.voted, poll.closed]
+    QuestionStatusSchema:
+      type: string
+      enum: [pending, answered, dismissed]
+    QuestionSchema:
+      type: object
+      required: [id, roomId, userId, body, status, isPinned, answer, upvoteCount, createdAt, answeredAt]
+      properties:
+        id:
+          type: string
+        roomId:
+          type: string
+        userId:
+          type: string
+        body:
+          type: string
+        status:
+          $ref: "#/components/schemas/QuestionStatusSchema"
+        isPinned:
+          type: boolean
+        answer:
+          type: string
+          nullable: true
+        upvoteCount:
+          type: integer
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+        answeredAt:
+          type: string
+          format: date-time
+          nullable: true
+        hasUpvoted:
+          type: boolean
+    SubmitQuestionRequestSchema:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+    ModerateQuestionRequestSchema:
+      type: object
+      required: [action, questionId]
+      properties:
+        action:
+          type: string
+          enum: [pin, answer, dismiss, upvote]
+        questionId:
+          type: string
+        value:
+          type: boolean
+        answer:
+          type: string
+    QaPacketSchema:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [qa.submitted, qa.updated]
+    WhiteboardSessionStatusSchema:
+      type: string
+      enum: [open, closed]
+    WhiteboardSessionSchema:
+      type: object
+      required: [id, roomId, status, openedById, snapshotKey, createdAt, closedAt]
+      properties:
+        id:
+          type: string
+        roomId:
+          type: string
+        status:
+          $ref: "#/components/schemas/WhiteboardSessionStatusSchema"
+        openedById:
+          type: string
+        snapshotKey:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+    OpenWhiteboardRequestSchema:
+      type: object
+    CloseWhiteboardRequestSchema:
+      type: object
+      properties:
+        snapshotPngBase64:
+          type: string
+    WhiteboardPacketSchema:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [whiteboard.opened, whiteboard.closed, whiteboard.sync]

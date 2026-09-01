@@ -21,6 +21,9 @@ import {
 } from "@/components/meeting/BreakoutPanel";
 import { moveToPreparedMeeting } from "@/lib/breakout-move";
 import { ChatPanel } from "@/components/meeting/ChatPanel";
+import { PollPanel } from "@/components/meeting/PollPanel";
+import { QaPanel } from "@/components/meeting/QaPanel";
+import { WhiteboardPanel } from "@/components/meeting/WhiteboardPanel";
 import { HandQueue } from "@/components/meeting/HandQueue";
 import {
   LayoutSwitcher,
@@ -38,6 +41,9 @@ import { RecordingConsent } from "@/components/meeting/RecordingConsent";
 import { StreamBanner } from "@/components/meeting/StreamBanner";
 import { StreamButton } from "@/components/meeting/StreamButton";
 import { ScreenShareButton } from "@/components/meeting/ScreenShareButton";
+import { LocalVideoBackgroundSync } from "@/components/meeting/LocalVideoBackgroundSync";
+import { NoiseSuppressionControl } from "@/components/meeting/NoiseSuppressionControl";
+import { VirtualBackgroundControl } from "@/components/meeting/VirtualBackgroundControl";
 import { GridView } from "@/components/meeting/layouts/GridView";
 import { SidebarView } from "@/components/meeting/layouts/SidebarView";
 import { SpeakerView } from "@/components/meeting/layouts/SpeakerView";
@@ -67,7 +73,7 @@ export function MeetingChrome({
   const [layout, setLayout] = useState<MeetingLayout>("grid");
   const [room, setRoom] = useState(initialRoom);
   const [panel, setPanel] = useState<
-    "none" | "chat" | "people" | "settings" | "breakouts"
+    "none" | "chat" | "people" | "settings" | "breakouts" | "polls" | "qa" | "whiteboard"
   >("none");
   const [spotlight, setSpotlight] = useState<string | undefined>();
   const [ended, setEnded] = useState(Boolean(initialRoom.finishedAt));
@@ -267,6 +273,7 @@ export function MeetingChrome({
 
   return (
     <div className="sru-meet">
+      <LocalVideoBackgroundSync />
       <RoomAudioRenderer />
       {connection === ConnectionState.Reconnecting ? (
         <p role="status" className="px-page py-2 text-center">
@@ -323,6 +330,15 @@ export function MeetingChrome({
             allowChat={room.allowChat !== false}
           />
         ) : null}
+        {panel === "polls" ? (
+          <PollPanel roomId={room.id} userId={userId} moderator={moderator} />
+        ) : null}
+        {panel === "qa" ? (
+          <QaPanel roomId={room.id} userId={userId} moderator={moderator} />
+        ) : null}
+        {panel === "whiteboard" ? (
+          <WhiteboardPanel roomId={room.id} userId={userId} host={role === "host"} />
+        ) : null}
         {panel === "people" ? (
           <ParticipantList roomId={room.id} host={moderator} />
         ) : null}
@@ -352,6 +368,8 @@ export function MeetingChrome({
         >
           {localParticipant.isMicrophoneEnabled ? "Mute" : "Unmute"}
         </button>
+        <NoiseSuppressionControl />
+        <VirtualBackgroundControl />
         <button
           type="button"
           className="sru-meet-btn"
@@ -368,6 +386,32 @@ export function MeetingChrome({
         <RaiseHand />
         <Reactions userId={userId} />
         <LayoutSwitcher layout={layout} onChange={setLayout} />
+        <button
+          type="button"
+          className="sru-meet-btn"
+          aria-pressed={panel === "polls"}
+          onClick={() => setPanel((value) => (value === "polls" ? "none" : "polls"))}
+        >
+          Poll
+        </button>
+        <button
+          type="button"
+          className="sru-meet-btn"
+          aria-pressed={panel === "qa"}
+          onClick={() => setPanel((value) => (value === "qa" ? "none" : "qa"))}
+        >
+          Q&amp;A
+        </button>
+        <button
+          type="button"
+          className="sru-meet-btn"
+          aria-pressed={panel === "whiteboard"}
+          onClick={() =>
+            setPanel((value) => (value === "whiteboard" ? "none" : "whiteboard"))
+          }
+        >
+          Board
+        </button>
         <button
           type="button"
           className="sru-meet-btn"

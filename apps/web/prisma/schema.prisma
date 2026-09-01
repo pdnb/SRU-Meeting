@@ -64,6 +64,22 @@ enum BreakoutSessionStatus {
   closed
 }
 
+enum PollStatus {
+  open
+  closed
+}
+
+enum QuestionStatus {
+  pending
+  answered
+  dismissed
+}
+
+enum WhiteboardSessionStatus {
+  open
+  closed
+}
+
 model User {
   id               String              @id @default(cuid())
   email            String              @unique
@@ -89,6 +105,11 @@ model User {
   webhookEndpoints WebhookEndpoint[]
   auditLogs        AuditLog[]          @relation("AuditActor")
   breakoutAssignments BreakoutAssignment[]
+  pollsCreated        Poll[]
+  pollVotes           PollVote[]
+  questions           Question[]
+  questionUpvotes     QuestionUpvote[]
+  whiteboardsOpened   WhiteboardSession[]
 
   @@unique([ssoProvider, ssoSubject])
 }
@@ -121,6 +142,9 @@ model Room {
   messages            ChatMessage[]
   recordings          Recording[]
   streams             Stream[]
+  polls               Poll[]
+  questions           Question[]
+  whiteboardSessions  WhiteboardSession[]
 }
 
 model BreakoutSession {
@@ -295,4 +319,88 @@ model AuditLog {
 model OrgSetting {
   key   String @id
   value Json
+}
+
+model Poll {
+  id          String       @id @default(cuid())
+  roomId      String
+  question    String
+  status      PollStatus   @default(open)
+  createdById String
+  createdAt   DateTime     @default(now())
+  closedAt    DateTime?
+  room        Room         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  options     PollOption[]
+  votes       PollVote[]
+
+  @@index([roomId, status])
+}
+
+model PollOption {
+  id        String     @id @default(cuid())
+  pollId    String
+  label     String
+  sortOrder Int
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes     PollVote[]
+
+  @@index([pollId, sortOrder])
+}
+
+model PollVote {
+  id        String     @id @default(cuid())
+  pollId    String
+  optionId  String
+  userId    String
+  createdAt DateTime   @default(now())
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option    PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId])
+  @@index([pollId, optionId])
+}
+
+model Question {
+  id         String           @id @default(cuid())
+  roomId     String
+  userId     String
+  body       String
+  status     QuestionStatus   @default(pending)
+  isPinned   Boolean          @default(false)
+  answer     String?
+  upvoteCount Int             @default(0)
+  createdAt  DateTime         @default(now())
+  answeredAt DateTime?
+  room       Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  upvotes    QuestionUpvote[]
+
+  @@index([roomId, status, isPinned, createdAt])
+}
+
+model QuestionUpvote {
+  id         String   @id @default(cuid())
+  questionId String
+  userId     String
+  createdAt  DateTime @default(now())
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, userId])
+}
+
+model WhiteboardSession {
+  id          String                  @id @default(cuid())
+  roomId      String
+  status      WhiteboardSessionStatus @default(open)
+  openedById  String
+  snapshotKey String?
+  createdAt   DateTime                @default(now())
+  closedAt    DateTime?
+  room        Room                    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  openedBy    User                    @relation(fields: [openedById], references: [id])
+
+  @@index([roomId, status])
 }
