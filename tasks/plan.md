@@ -1339,8 +1339,8 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 ## Checkpoint: After Tasks 41-46
 
-- [ ] Two browsers: host opens breakouts, participant lands in a child, recall returns everyone
-- [ ] Child token mint rejects unassigned participants
+- [x] Two browsers: host opens breakouts, participant lands in a child, recall returns everyone
+- [x] Child token mint rejects unassigned participants
 - [ ] Review with human before streaming
 
 ### Task 47: Stream model + RTMP start/stop + consent
@@ -1451,8 +1451,8 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 ## Checkpoint: After Tasks 47-51
 
-- [ ] Host can start/stop RTMP; HLS live playlist is playable in-product
-- [ ] Embed iframe joins with a postMessage token
+- [x] Host can start/stop RTMP; HLS live playlist is playable in-product
+- [x] Embed iframe joins with a postMessage token
 - [ ] Review with human before Helm and load test
 
 ### Task 52: Helm chart for web, Postgres, Redis, MinIO

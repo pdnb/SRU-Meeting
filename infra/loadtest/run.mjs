@@ -115,8 +115,13 @@ async function loadLiveKit() {
   const requireFromWeb = createRequire(join(ROOT, "apps/web/package.json"));
   const clientPath = requireFromWeb.resolve("livekit-client");
   const sdkPath = requireFromWeb.resolve("livekit-server-sdk");
-  const client = await import(pathToFileURL(clientPath).href);
-  const sdk = await import(pathToFileURL(sdkPath).href);
+  const clientMod = await import(pathToFileURL(clientPath).href);
+  const sdkMod = await import(pathToFileURL(sdkPath).href);
+  const client = clientMod.default ?? clientMod;
+  const sdk = sdkMod.default ?? sdkMod;
+  if (typeof client.Room !== "function") {
+    throw new Error("Could not load livekit-client Room from apps/web");
+  }
   return {
     Room: client.Room,
     RoomEvent: client.RoomEvent,

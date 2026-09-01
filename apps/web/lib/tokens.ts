@@ -147,9 +147,7 @@ export async function mintRoomJoinToken(input: {
     };
   }
 
-  if (room.parentRoomId) {
-    await ensureLiveKitRoom(input.roomId);
-  }
+  await ensureLiveKitRoom(input.roomId);
 
   const token = await mintAccessToken({
     apiKey: env.LIVEKIT_API_KEY,

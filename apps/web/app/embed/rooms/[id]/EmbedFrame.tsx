@@ -21,12 +21,13 @@ export function EmbedFrame({
 }) {
   const [connect, setConnect] = useState<EmbedConnectPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const configurationError =
+    allowedOrigins.length === 0
+      ? "Embed is not configured. Set EMBED_ALLOWED_ORIGINS to the parent page origin."
+      : null;
 
   useEffect(() => {
-    if (allowedOrigins.length === 0) {
-      setError(
-        "Embed is not configured. Set EMBED_ALLOWED_ORIGINS to the parent page origin.",
-      );
+    if (configurationError) {
       return;
     }
 
@@ -55,10 +56,15 @@ export function EmbedFrame({
     return () => {
       window.removeEventListener("message", onMessage);
     };
-  }, [allowedOrigins, room.id]);
+  }, [allowedOrigins, configurationError, room.id]);
 
-  if (error) {
-    return <MeetingErrorState title="Embed blocked" message={error} />;
+  if (configurationError ?? error) {
+    return (
+      <MeetingErrorState
+        title="Embed blocked"
+        message={configurationError ?? error ?? ""}
+      />
+    );
   }
 
   if (!connect) {

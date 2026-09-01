@@ -19,7 +19,7 @@ import { allAdmittedHaveConsented } from "@/lib/recording";
 import { getParticipation, getRoomRecord, isModeratorRole } from "@/lib/rooms";
 import { enqueueWebhook } from "@/lib/webhooks";
 import { streamLivePlaylistUrl } from "@/lib/stream-ui";
-import { getRoomService } from "@/lib/livekit/room-service";
+import { getRoomService, ensureLiveKitRoom } from "@/lib/livekit/room-service";
 
 const MAX_STREAM_DESTINATIONS = 8;
 
@@ -219,14 +219,18 @@ async function publishStreamMetadata(
   } catch {
     // Keep going with streaming-only metadata.
   }
-  await livekit.updateRoomMetadata(
-    roomId,
-    JSON.stringify({
-      ...(spotlightIdentity ? { spotlightIdentity } : {}),
-      ...(recording !== undefined ? { recording } : {}),
-      streaming,
-    }),
-  );
+  try {
+    await livekit.updateRoomMetadata(
+      roomId,
+      JSON.stringify({
+        ...(spotlightIdentity ? { spotlightIdentity } : {}),
+        ...(recording !== undefined ? { recording } : {}),
+        streaming,
+      }),
+    );
+  } catch {
+    // Room may not exist yet or may have already closed.
+  }
 }
 
 async function startEgressForStream(stream: {
@@ -235,6 +239,7 @@ async function startEgressForStream(stream: {
   rtmpUrls: string[];
   hlsPrefix: string | null;
 }): Promise<void> {
+  await ensureLiveKitRoom(stream.roomId);
   await prisma.stream.update({
     where: { id: stream.id },
     data: { status: "starting" },

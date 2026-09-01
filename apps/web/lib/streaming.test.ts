@@ -31,6 +31,7 @@ vi.mock("@/lib/audit", () => ({ writeAudit: vi.fn() }));
 vi.mock("@/lib/webhooks", () => ({ enqueueWebhook }));
 vi.mock("@/lib/livekit/room-service", () => ({
   getRoomService: () => null,
+  ensureLiveKitRoom: vi.fn(async () => undefined),
 }));
 vi.mock("@/lib/egress", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/egress")>();

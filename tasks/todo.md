@@ -163,14 +163,14 @@ Do not treat the E3.* rows as build units. Work the numbered tasks below. WHEP /
 
 ### Checkpoint: After Tasks 41-46 (breakouts)
 
-- [ ] Two browsers: host opens breakouts, participant lands in a child, recall returns everyone
-- [ ] Child token mint rejects unassigned participants
-- [ ] Application still builds
+- [x] Two browsers: host opens breakouts, participant lands in a child, recall returns everyone
+- [x] Child token mint rejects unassigned participants
+- [x] Application still builds
 
 ### Checkpoint: After Tasks 47-51 (streaming + embed)
 
-- [ ] Host can start/stop RTMP; HLS live playlist is playable in-product
-- [ ] Embed iframe joins with a postMessage token; secret never in the customer page
+- [x] Host can start/stop RTMP; HLS live playlist is playable in-product
+- [x] Embed iframe joins with a postMessage token; secret never in the customer page
 - [ ] Review with human before Helm and load test
 
 ### Checkpoint: Production 1.0
