@@ -1,5 +1,7 @@
 # Local media stack
 
+**Docker Compose is the local / small-org default.** Use this file for day-to-day development. Kubernetes/Helm (`infra/helm/sru-conf`) is optional for production-style deploys and does **not** replace Compose for local work.
+
 One-command local data and media plane for SRU-Conf: LiveKit, Redis, Postgres, coturn, MinIO, and an isolated LiveKit Egress worker (recording).
 
 ```powershell
@@ -165,6 +167,17 @@ When a room has the lobby enabled:
 | Postgres | `postgres:16-alpine` |
 | coturn | `coturn/coturn:4.17` |
 | MinIO | `minio/minio:latest` |
+
+## Kubernetes (Helm)
+
+Chart: `infra/helm/sru-conf` (web, Postgres, Redis, MinIO). Compose remains the documented local default — do not treat Helm as required for small-org installs.
+
+```powershell
+helm template sru infra/helm/sru-conf
+node infra/helm/sru-conf/check.mjs
+```
+
+See `infra/helm/sru-conf/README.md`. LiveKit / coturn / egress Helm values land in Task 53.
 
 ## Troubleshooting
 

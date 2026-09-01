@@ -1,0 +1,5 @@
+1. Docker Compose remains the **local / small-org default** (`infra/docker-compose.yml`). This chart is for Kubernetes; it does not replace Compose for day-to-day development.
+2. Override every `REPLACE_ME` value (or set `web.secrets.existingSecret`) before install.
+3. LiveKit, coturn, and egress are **not** in this chart — see Task 53 values.
+4. Render locally:
+   helm template sru infra/helm/sru-conf

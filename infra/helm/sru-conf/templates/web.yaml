@@ -1,25 +1,4 @@
 {{- if .Values.web.enabled }}
-{{- if not .Values.web.secrets.existingSecret }}
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ include "sru-conf.secretName" . }}
-  labels:
-    {{- include "sru-conf.labels" . | nindent 4 }}
-type: Opaque
-stringData:
-  AUTH_SECRET: {{ .Values.web.secrets.authSecret | quote }}
-  LIVEKIT_API_KEY: {{ .Values.web.secrets.livekitApiKey | quote }}
-  LIVEKIT_API_SECRET: {{ .Values.web.secrets.livekitApiSecret | quote }}
-  S3_ACCESS_KEY: {{ .Values.web.secrets.s3AccessKey | quote }}
-  S3_SECRET_KEY: {{ .Values.web.secrets.s3SecretKey | quote }}
-  INTERNAL_CRON_SECRET: {{ .Values.web.secrets.internalCronSecret | quote }}
-  POSTGRES_PASSWORD: {{ .Values.postgres.auth.password | quote }}
-  MINIO_ROOT_USER: {{ .Values.minio.auth.rootUser | quote }}
-  MINIO_ROOT_PASSWORD: {{ .Values.minio.auth.rootPassword | quote }}
-  DATABASE_URL: {{ printf "postgresql://%s:%s@%s:%v/%s" .Values.postgres.auth.username .Values.postgres.auth.password (include "sru-conf.postgres.fullname" .) .Values.postgres.service.port .Values.postgres.auth.database | quote }}
-{{- end }}
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:

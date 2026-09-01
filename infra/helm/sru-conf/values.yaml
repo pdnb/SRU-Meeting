@@ -22,12 +22,14 @@ web:
   env:
     AUTH_URL: "http://localhost:3000"
     LIVEKIT_URL: ""
-    S3_ENDPOINT: "http://sru-conf-minio:9000"
-    S3_INTERNAL_ENDPOINT: "http://sru-conf-minio:9000"
+    S3_ENDPOINT: ""
+    S3_INTERNAL_ENDPOINT: ""
     S3_BUCKET: sru-chat
     S3_RECORDINGS_BUCKET: sru-chat
     S3_REGION: us-east-1
     EMBED_ALLOWED_ORIGINS: ""
+  # After install, set S3 endpoints to http://<release>-sru-conf-minio:9000
+  # (see helm template output for the MinIO Service name).
   # Secret keys are referenced from an existing Secret, or from inline placeholders below.
   secrets:
     # Prefer an external Secret / sealed-secret in production.

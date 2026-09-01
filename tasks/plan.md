@@ -137,7 +137,7 @@ Saved 2026-08-31 as git tag `checkpoint/phase-1-mvp`. Two-browser A/V and passwo
 - [x] Task 49: Stream banner + org HLS player (E3.2)
 - [x] Task 50: Embed package + iframe page (E3.6)
 - [x] Task 51: postMessage handshake + origin allowlist (E3.6)
-- [ ] Task 52: Helm chart for web/Postgres/Redis/MinIO (E3.4)
+- [x] Task 52: Helm chart for web/Postgres/Redis/MinIO (E3.4)
 - [ ] Task 53: LiveKit + coturn + egress Helm + air-gap (E3.4)
 - [ ] Task 54: Load-test runner against Compose (E3.5)
 - [ ] Task 55: 500-concurrent + TURN/4G runbook (E3.5)
@@ -1461,14 +1461,14 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 **Acceptance criteria:**
 
-- [ ] `helm template` renders web, Postgres, Redis, and MinIO
-- [ ] Values file has no real secrets committed
-- [ ] README states Compose is still the local default
+- [x] `helm template` renders web, Postgres, Redis, and MinIO
+- [x] Values file has no real secrets committed
+- [x] README states Compose is still the local default
 
 **Verification:**
 
-- [ ] Tests pass: existing suite
-- [ ] Manual check: `helm template sru infra/helm/sru-conf` (or documented equivalent)
+- [x] Tests pass: existing suite
+- [x] Manual check: `helm template sru infra/helm/sru-conf` (or documented equivalent)
 
 **Dependencies:** Tasks 2, 24
 
