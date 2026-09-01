@@ -2,7 +2,6 @@
 
 import { LiveKitRoom } from "@livekit/components-react";
 import type { Room } from "@sru/shared";
-import { BreakoutMoveProvider } from "@/components/meeting/BreakoutMoveProvider";
 import { MeetingChrome } from "@/components/meeting/MeetingChrome";
 import {
   connectOptionsForLiveKitUrl,
@@ -38,9 +37,7 @@ export function MeetingRoom({
       options={roomOptionsForNetwork(readBrowserNetworkHints())}
       className="h-full"
     >
-      <BreakoutMoveProvider userId={userId}>
-        <MeetingChrome room={room} userId={userId} role={role} />
-      </BreakoutMoveProvider>
+      <MeetingChrome room={room} userId={userId} role={role} />
     </LiveKitRoom>
   );
 }

@@ -46,3 +46,6 @@ jobs:
 
       - name: Unit tests
         run: pnpm test
+
+      - name: Mobile store ship skipped in CI
+        run: node apps/mobile/scripts/verify-ci-no-store-ship.mjs

@@ -11,7 +11,7 @@ import {
   useTracks,
 } from "@livekit/components-react";
 import { ConnectionState, RoomEvent, Track } from "livekit-client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BreakoutChildBar,
   BreakoutHelpNotice,
@@ -19,7 +19,7 @@ import {
   BreakoutPanel,
   useOpenBreakout,
 } from "@/components/meeting/BreakoutPanel";
-import { useBreakoutMove } from "@/components/meeting/BreakoutMoveProvider";
+import { moveToPreparedMeeting } from "@/lib/breakout-move";
 import { ChatPanel } from "@/components/meeting/ChatPanel";
 import { HandQueue } from "@/components/meeting/HandQueue";
 import {
@@ -97,7 +97,21 @@ export function MeetingChrome({
   const moderator = role === "host" || role === "cohost";
   const inChild = Boolean(room.parentRoomId);
   const breakouts = useOpenBreakout(room.parentRoomId ?? room.id);
-  const moveToRoom = useBreakoutMove();
+  const moveToRoom = useCallback(
+    async (destinationRoomId: string) => {
+      const result = await moveToPreparedMeeting({
+        destinationRoomId,
+        identity: userId,
+        name: localParticipant.name || undefined,
+        audio: localParticipant.isMicrophoneEnabled,
+        video: localParticipant.isCameraEnabled,
+      });
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+    },
+    [localParticipant, userId],
+  );
 
   useEffect(() => {
     const onMeta = (metadata: string) => {

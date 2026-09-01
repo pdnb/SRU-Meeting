@@ -155,11 +155,11 @@ Do not treat the E3.* rows as build units. Work the numbered tasks below. WHEP /
 - [x] **Task 52:** Helm chart for web, Postgres, Redis, MinIO (E3.4)
 - [x] **Task 53:** LiveKit + coturn + egress Helm values + air-gap images (E3.4)
 - [x] **Task 54:** Load-test runner against Compose (E3.5)
-- [ ] **Task 55:** 500-concurrent + TURN/4G runbook and gates (E3.5)
-- [ ] **Task 56:** Expo app that joins with a minted token (E3.3)
-- [ ] **Task 57:** Native grid + mute (E3.3)
-- [ ] **Task 58:** PiP + background audio (E3.3)
-- [ ] **Task 59:** CallKit / ConnectionService + push (signing required) (E3.3)
+- [x] **Task 55:** 500-concurrent + TURN/4G runbook and gates (E3.5)
+- [x] **Task 56:** Expo app that joins with a minted token (E3.3)
+- [x] **Task 57:** Native grid + mute (E3.3)
+- [x] **Task 58:** PiP + background audio (E3.3)
+- [x] **Task 59:** CallKit / ConnectionService + push (signing required) (E3.3)
 
 ### Checkpoint: After Tasks 41-46 (breakouts)
 

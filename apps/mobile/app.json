@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "SRU Conf",
+    "slug": "sru-conf",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sru.conf",
+      "infoPlist": {
+        "NSCameraUsageDescription": "SRU Conf needs the camera for meetings.",
+        "NSMicrophoneUsageDescription": "SRU Conf needs the microphone for meetings.",
+        "UIBackgroundModes": ["audio", "voip", "picture-in-picture"]
+      }
+    },
+    "android": {
+      "package": "com.sru.conf",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_CAMERA",
+        "FOREGROUND_SERVICE_MICROPHONE",
+        "FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "WAKE_LOCK"
+      ]
+    },
+    "plugins": [
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
+      "@config-plugins/react-native-callkeep"
+    ]
+  }
+}

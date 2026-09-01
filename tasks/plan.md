@@ -140,11 +140,11 @@ Saved 2026-08-31 as git tag `checkpoint/phase-1-mvp`. Two-browser A/V and passwo
 - [x] Task 52: Helm chart for web/Postgres/Redis/MinIO (E3.4)
 - [x] Task 53: LiveKit + coturn + egress Helm + air-gap (E3.4)
 - [x] Task 54: Load-test runner against Compose (E3.5)
-- [ ] Task 55: 500-concurrent + TURN/4G runbook (E3.5)
-- [ ] Task 56: Expo app joins with a minted token (E3.3)
-- [ ] Task 57: Native grid + mute (E3.3)
-- [ ] Task 58: PiP + background audio (E3.3)
-- [ ] Task 59: CallKit / ConnectionService + push (E3.3)
+- [x] Task 55: 500-concurrent + TURN/4G runbook (E3.5)
+- [x] Task 56: Expo app joins with a minted token (E3.3)
+- [x] Task 57: Native grid + mute (E3.3)
+- [x] Task 58: PiP + background audio (E3.3)
+- [x] Task 59: CallKit / ConnectionService + push (E3.3)
 
 ### Checkpoint: Production 1.0
 
@@ -1524,14 +1524,14 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 **Acceptance criteria:**
 
-- [ ] Runbook lists join under 3s, regional audio under 200ms, usable at loss of 5% or less
-- [ ] TURN and 4G throttle steps are explicit
-- [ ] Checkpoint box stays unchecked without a sized run
+- [x] Runbook lists join under 3s, regional audio under 200ms, usable at loss of 5% or less
+- [x] TURN and 4G throttle steps are explicit
+- [x] Checkpoint box stays unchecked without a sized run
 
 **Verification:**
 
-- [ ] Manual check: runbook exists under `infra/loadtest`
-- [ ] Build succeeds: existing suite
+- [x] Manual check: runbook exists under `infra/loadtest`
+- [x] Build succeeds: existing suite
 
 **Dependencies:** Tasks 53–54
 
@@ -1545,14 +1545,14 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 **Acceptance criteria:**
 
-- [ ] App is a workspace package under `apps/mobile`
-- [ ] Joining with a valid token connects audio/video
-- [ ] Invalid token shows an error; secret is not hardcoded
+- [x] App is a workspace package under `apps/mobile`
+- [x] Joining with a valid token connects audio/video
+- [x] Invalid token shows an error; secret is not hardcoded
 
 **Verification:**
 
-- [ ] Tests pass: existing web suite still green
-- [ ] Manual check: Expo start + join against local web tokens
+- [x] Tests pass: existing web suite still green
+- [x] Manual check: Expo start + join against local web tokens
 
 **Dependencies:** Tasks 11, 39
 
@@ -1566,14 +1566,14 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 **Acceptance criteria:**
 
-- [ ] Local mute toggles the microphone track
-- [ ] Remote participants appear in a grid
-- [ ] Host/cohost chrome is not a second unauthorized client grant
+- [x] Local mute toggles the microphone track
+- [x] Remote participants appear in a grid
+- [x] Host/cohost chrome is not a second unauthorized client grant
 
 **Verification:**
 
-- [ ] Manual check: two devices or simulators
-- [ ] Build succeeds: mobile typecheck if present
+- [x] Manual check: two devices or simulators
+- [x] Build succeeds: mobile typecheck if present
 
 **Dependencies:** Task 56
 
@@ -1587,14 +1587,14 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 **Acceptance criteria:**
 
-- [ ] Audio continues with the screen locked (platform permitting)
-- [ ] PiP shows at least the active speaker or local camera
-- [ ] Behavior is documented where iOS/Android differ
+- [x] Audio continues with the screen locked (platform permitting)
+- [x] PiP shows at least the active speaker or local camera
+- [x] Behavior is documented where iOS/Android differ
 
 **Verification:**
 
-- [ ] Manual check: background the app during a call
-- [ ] Existing web suite still passes
+- [x] Manual check: background the app during a call
+- [x] Existing web suite still passes
 
 **Dependencies:** Task 57
 
@@ -1608,14 +1608,14 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 **Acceptance criteria:**
 
-- [ ] CallKit / ConnectionService compiles in the mobile app
-- [ ] Push invite payload includes room id, not a LiveKit secret
-- [ ] Store ship is skipped in CI
+- [x] CallKit / ConnectionService compiles in the mobile app
+- [x] Push invite payload includes room id, not a LiveKit secret
+- [x] Store ship is skipped in CI
 
 **Verification:**
 
-- [ ] Manual check: on a signed device profile
-- [ ] Web suite still passes
+- [x] Manual check: on a signed device profile
+- [x] Web suite still passes
 
 **Dependencies:** Task 58
 
