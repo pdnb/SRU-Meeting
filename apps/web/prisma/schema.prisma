@@ -80,6 +80,20 @@ enum WhiteboardSessionStatus {
   closed
 }
 
+enum TranscriptStatus {
+  pending
+  processing
+  finished
+  failed
+}
+
+enum MeetingSummaryStatus {
+  not_configured
+  pending
+  finished
+  failed
+}
+
 model User {
   id               String              @id @default(cuid())
   email            String              @unique
@@ -218,6 +232,7 @@ model Recording {
   room          Room                @relation(fields: [roomId], references: [id], onDelete: Cascade)
   startedBy     User                @relation(fields: [startedById], references: [id])
   consents      RecordingConsent[]
+  transcript    Transcript?
 
   @@index([roomId, createdAt])
 }
@@ -403,4 +418,43 @@ model WhiteboardSession {
   openedBy    User                    @relation(fields: [openedById], references: [id])
 
   @@index([roomId, status])
+}
+
+model Transcript {
+  id          String             @id @default(cuid())
+  recordingId String             @unique
+  status      TranscriptStatus   @default(pending)
+  language    String?
+  error       String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  finishedAt  DateTime?
+  recording   Recording          @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  segments    TranscriptSegment[]
+  summary     MeetingSummary?
+
+  @@index([status, createdAt])
+}
+
+model TranscriptSegment {
+  id           String     @id @default(cuid())
+  transcriptId String
+  startMs      Int
+  endMs        Int
+  speakerLabel String
+  text         String
+  sortOrder    Int
+  transcript   Transcript @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+
+  @@index([transcriptId, sortOrder])
+}
+
+model MeetingSummary {
+  id           String               @id @default(cuid())
+  transcriptId String               @unique
+  status       MeetingSummaryStatus @default(not_configured)
+  bodyMarkdown String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  transcript   Transcript           @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
 }

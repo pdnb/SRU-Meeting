@@ -164,10 +164,10 @@ Ship order: media polish (60–62) → engagement (63–68) → transcription pl
 - [x] Task 66: Q&A moderator + participant panels
 - [x] Task 67: Whiteboard contracts + session model
 - [x] Task 68: Collaborative whiteboard panel (tldraw)
-- [ ] Task 69: Transcript schema + contracts
-- [ ] Task 70: Transcript viewer UI
-- [ ] Task 71: Transcription worker interface + enqueue hook
-- [ ] Task 72: Meeting summary placeholder
+- [x] Task 69: Transcript schema + contracts
+- [x] Task 70: Transcript viewer UI
+- [x] Task 71: Transcription worker interface + enqueue hook
+- [x] Task 72: Meeting summary placeholder
 - [ ] Task 73: Metrics rollup schema + nightly job
 - [ ] Task 74: Analytics API
 - [ ] Task 75: Analytics dashboard UI

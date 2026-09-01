@@ -659,6 +659,50 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CreateWebhookEndpointResponseSchema"
+  /api/v1/recordings/{id}/transcript:
+    parameters:
+      - $ref: "#/components/parameters/RecordingId"
+    get:
+      tags: [recordings]
+      summary: Get transcript for a finished recording
+      operationId: getRecordingTranscript
+      security:
+        - session: []
+      responses:
+        "200":
+          description: Transcript with segments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranscriptSchema"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/v1/recordings/{id}/summary:
+    parameters:
+      - $ref: "#/components/parameters/RecordingId"
+    get:
+      tags: [recordings]
+      summary: Get meeting summary for a transcript
+      operationId: getRecordingSummary
+      security:
+        - session: []
+      responses:
+        "200":
+          description: Meeting summary placeholder or generated body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetingSummarySchema"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 components:
   securitySchemes:
     session:
@@ -677,6 +721,14 @@ components:
       in: path
       required: true
       description: Room id
+      schema:
+        type: string
+        minLength: 1
+    RecordingId:
+      name: id
+      in: path
+      required: true
+      description: Recording id
       schema:
         type: string
         minLength: 1
@@ -1311,3 +1363,91 @@ components:
         type:
           type: string
           enum: [whiteboard.opened, whiteboard.closed, whiteboard.sync]
+    TranscriptStatusSchema:
+      type: string
+      enum: [pending, processing, finished, failed]
+    MeetingSummaryStatusSchema:
+      type: string
+      enum: [not_configured, pending, finished, failed]
+    TranscriptSegmentSchema:
+      type: object
+      required: [id, startMs, endMs, speakerLabel, text, sortOrder]
+      properties:
+        id:
+          type: string
+        startMs:
+          type: integer
+          minimum: 0
+        endMs:
+          type: integer
+          minimum: 0
+        speakerLabel:
+          type: string
+        text:
+          type: string
+        sortOrder:
+          type: integer
+          minimum: 0
+    TranscriptSchema:
+      type: object
+      required: [id, recordingId, status, segments, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        recordingId:
+          type: string
+        status:
+          $ref: "#/components/schemas/TranscriptStatusSchema"
+        language:
+          type: string
+          nullable: true
+        segments:
+          type: array
+          items:
+            $ref: "#/components/schemas/TranscriptSegmentSchema"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+    MeetingSummarySchema:
+      type: object
+      required: [id, transcriptId, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        transcriptId:
+          type: string
+        status:
+          $ref: "#/components/schemas/MeetingSummaryStatusSchema"
+        bodyMarkdown:
+          type: string
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TranscriptionSegmentInputSchema:
+      type: object
+      required: [startMs, endMs, speakerLabel, text]
+      properties:
+        startMs:
+          type: integer
+          minimum: 0
+        endMs:
+          type: integer
+          minimum: 0
+        speakerLabel:
+          type: string
+        text:
+          type: string

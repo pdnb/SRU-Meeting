@@ -97,6 +97,12 @@ const ZOD_SCHEMA_NAMES = new Set([
   "OpenWhiteboardRequestSchema",
   "CloseWhiteboardRequestSchema",
   "WhiteboardPacketSchema",
+  "TranscriptStatusSchema",
+  "MeetingSummaryStatusSchema",
+  "TranscriptSegmentSchema",
+  "TranscriptSchema",
+  "MeetingSummarySchema",
+  "TranscriptionSegmentInputSchema",
 ]);
 
 const REQUIRED_SCHEMA_NAMES = [

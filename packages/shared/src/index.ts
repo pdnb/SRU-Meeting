@@ -146,3 +146,18 @@ export {
   type CloseWhiteboardRequest,
   type WhiteboardPacket,
 } from "./whiteboard";
+
+export {
+  TranscriptStatusSchema,
+  MeetingSummaryStatusSchema,
+  TranscriptSegmentSchema,
+  TranscriptSchema,
+  MeetingSummarySchema,
+  TranscriptionSegmentInputSchema,
+  type TranscriptStatus,
+  type MeetingSummaryStatus,
+  type TranscriptSegment,
+  type Transcript,
+  type MeetingSummary,
+  type TranscriptionSegmentInput,
+} from "./transcript";

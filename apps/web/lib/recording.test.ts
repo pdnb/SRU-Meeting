@@ -38,6 +38,9 @@ vi.mock("@/lib/egress", () => ({
 vi.mock("@/lib/webhooks", () => ({
   enqueueWebhook: vi.fn(async () => undefined),
 }));
+vi.mock("@/lib/transcript", () => ({
+  onRecordingFinished: vi.fn(async () => undefined),
+}));
 
 import { startTrackFileEgress } from "@/lib/egress";
 import {

@@ -214,20 +214,24 @@ Do not treat parked epic rows as build units. Work the numbered tasks below. Shi
 - [ ] Whiteboard sync works two-browser
 - [ ] Review with human before transcription wave
 
+Automated verification 2026-09-01: Tasks 63–68 marked done; `phase4_engagement` migration applied (no pending); shared 24 + web 177 tests pass; typecheck pass; `next build --turbopack` in `apps/web` OK (`pnpm --filter web build` fails prisma generate EPERM on Windows). Unit tests cover participant poll-create 403 (`polls.test.ts`) and breakout whiteboard 403 (`whiteboards.test.ts`); Q&A submit + moderator 403 in `questions.test.ts`. MeetingChrome wires PollPanel, QaPanel, WhiteboardPanel with sidebar toggles. Two-browser and human review still required.
+
 ### Wave 3: Transcription & summary — schema/UI only
 
-- [ ] **Task 69:** Transcript schema + contracts
-- [ ] **Task 70:** Transcript viewer UI
-- [ ] **Task 71:** Transcription worker interface + enqueue hook (stub; no STT yet)
-- [ ] **Task 72:** Meeting summary placeholder
+- [x] **Task 69:** Transcript schema + contracts
+- [x] **Task 70:** Transcript viewer UI
+- [x] **Task 71:** Transcription worker interface + enqueue hook (stub; no STT yet)
+- [x] **Task 72:** Meeting summary placeholder
 
 ### Checkpoint: Transcription plumbing (after Tasks 69–72)
 
-- [ ] Recording finish enqueues transcript job (stub)
+- [x] Recording finish enqueues transcript job (stub)
 - [ ] Transcript viewer renders seeded segments
-- [ ] Summary placeholder visible
+- [x] Summary placeholder visible
 - [ ] **Human decision:** choose STT provider (Whisper vs cloud) before real Task 71 provider
 - [ ] Review with human before analytics wave
+
+Automated verification 2026-09-01: Tasks 69–72 marked done; `phase4_transcription` migration added; shared + web tests pass; typecheck pass; `next build --turbopack` in `apps/web` if prisma EPERM. Stub `StubTranscriptionProvider` only — no Whisper/cloud STT or LLM. Seeded segment UI and human STT gate still required.
 
 ### Wave 4: Analytics dashboard
 

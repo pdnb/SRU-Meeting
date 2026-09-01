@@ -1,0 +1,22 @@
+{
+  "name": "worker-transcribe",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "prisma generate --schema ../web/prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "@sru/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "prisma": "^6.19.3",
+    "tsx": "^4.20.5",
+    "typescript": "^5"
+  }
+}

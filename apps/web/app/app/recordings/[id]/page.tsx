@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth";
 import { isOrgAdmin } from "@/lib/rbac";
 import { getRecordingForUser } from "@/lib/recording";
-import { HlsPlayer } from "@/components/vod/HlsPlayer";
+import { getSummaryForUser, getTranscriptForUser } from "@/lib/transcript";
+import { RecordingDetailView } from "@/components/recordings/RecordingDetailView";
 import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
 
 export default async function RecordingPage({
@@ -30,6 +31,20 @@ export default async function RecordingPage({
     );
   }
   const recording = result.recording;
+
+  const [transcriptResult, summaryResult] = await Promise.all([
+    getTranscriptForUser({
+      recordingId: id,
+      userId: session.user.id,
+      orgAdmin: isOrgAdmin(session.user.orgRole),
+    }),
+    getSummaryForUser({
+      recordingId: id,
+      userId: session.user.id,
+      orgAdmin: isOrgAdmin(session.user.orgRole),
+    }),
+  ]);
+
   return (
     <main id="app-main" className="mx-auto w-full max-w-3xl flex-1 px-page py-12">
       <h1 className="font-sans text-display font-semibold text-ink">
@@ -39,21 +54,18 @@ export default async function RecordingPage({
         Status: {recording.status}
         {recording.finishedAt ? ` · Finished ${recording.finishedAt}` : ""}
       </p>
-      {recording.hlsUrl ? (
-        <div className="mt-8">
-          <HlsPlayer src={recording.hlsUrl} title="Meeting recording" />
-        </div>
-      ) : recording.downloadUrl ? (
-        <p className="mt-8">
-          <a href={recording.downloadUrl} className="sru-cta">
-            Download MP4
-          </a>
-        </p>
-      ) : (
-        <p className="mt-8 text-body text-muted">
-          Playback will appear when the recording has finished uploading.
-        </p>
-      )}
+      <RecordingDetailView
+        recording={recording}
+        initialTranscript={transcriptResult.ok ? transcriptResult.transcript : null}
+        initialSummary={summaryResult.ok ? summaryResult.summary : null}
+        transcriptUnavailableMessage={
+          !transcriptResult.ok && transcriptResult.status === 404
+            ? "Transcript not available yet."
+            : !transcriptResult.ok
+              ? "Could not load transcript."
+              : null
+        }
+      />
     </main>
   );
 }

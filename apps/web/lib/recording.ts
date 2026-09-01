@@ -396,6 +396,8 @@ export async function stopRecording(input: {
   await enqueueWebhook("recording_finished", {
     recording: { id: recording.id, roomId: input.roomId },
   });
+  const { onRecordingFinished } = await import("@/lib/transcript");
+  await onRecordingFinished(recording.id);
   return { ok: true, recording: toRecordingDto(finished) };
 }
 

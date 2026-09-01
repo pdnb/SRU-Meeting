@@ -178,6 +178,22 @@ services:
       retries: 8
       start_period: 40s
 
+  # Stub transcription worker (Task 71). Polls Postgres for pending transcripts.
+  # Replace StubTranscriptionProvider before production STT.
+  worker-transcribe:
+    image: node:22-alpine
+    restart: unless-stopped
+    working_dir: /app
+    command: ["sh", "-c", "corepack enable && pnpm --filter worker-transcribe start"]
+    environment:
+      DATABASE_URL: postgresql://sru:sru_local_dev@postgres:5432/sru_conf
+      TRANSCRIBE_POLL_MS: "5000"
+    volumes:
+      - ..:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   minio_data:
