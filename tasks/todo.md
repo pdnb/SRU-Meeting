@@ -154,7 +154,7 @@ Do not treat the E3.* rows as build units. Work the numbered tasks below. WHEP /
 - [x] **Task 51:** postMessage token handshake + origin allowlist (E3.6)
 - [x] **Task 52:** Helm chart for web, Postgres, Redis, MinIO (E3.4)
 - [x] **Task 53:** LiveKit + coturn + egress Helm values + air-gap images (E3.4)
-- [ ] **Task 54:** Load-test runner against Compose (E3.5)
+- [x] **Task 54:** Load-test runner against Compose (E3.5)
 - [ ] **Task 55:** 500-concurrent + TURN/4G runbook and gates (E3.5)
 - [ ] **Task 56:** Expo app that joins with a minted token (E3.3)
 - [ ] **Task 57:** Native grid + mute (E3.3)

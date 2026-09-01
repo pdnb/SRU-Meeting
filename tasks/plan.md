@@ -139,7 +139,7 @@ Saved 2026-08-31 as git tag `checkpoint/phase-1-mvp`. Two-browser A/V and passwo
 - [x] Task 51: postMessage handshake + origin allowlist (E3.6)
 - [x] Task 52: Helm chart for web/Postgres/Redis/MinIO (E3.4)
 - [x] Task 53: LiveKit + coturn + egress Helm + air-gap (E3.4)
-- [ ] Task 54: Load-test runner against Compose (E3.5)
+- [x] Task 54: Load-test runner against Compose (E3.5)
 - [ ] Task 55: 500-concurrent + TURN/4G runbook (E3.5)
 - [ ] Task 56: Expo app joins with a minted token (E3.3)
 - [ ] Task 57: Native grid + mute (E3.3)
@@ -1503,14 +1503,14 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 **Acceptance criteria:**
 
-- [ ] Runner starts from `infra/loadtest` against Compose LiveKit
-- [ ] Join-time helper fails when join exceeds 3s
-- [ ] README says this is not a 500-user run
+- [x] Runner starts from `infra/loadtest` against Compose LiveKit
+- [x] Join-time helper fails when join exceeds 3s
+- [x] README says this is not a 500-user run
 
 **Verification:**
 
-- [ ] Tests pass: join-time helper
-- [ ] Manual check: runner --help or dry run
+- [x] Tests pass: join-time helper
+- [x] Manual check: runner --help or dry run
 
 **Dependencies:** Task 11
 
