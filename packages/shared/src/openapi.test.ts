@@ -20,12 +20,22 @@ const PHASE1_PATHS = [
   "/api/v1/rooms",
   "/api/v1/rooms/{id}",
   "/api/v1/rooms/{id}/tokens",
+  "/api/v1/rooms/{id}/recording",
+  "/api/v1/rooms/{id}/breakouts",
+  "/api/v1/rooms/{id}/streaming",
+  "/api/v1/keys",
+  "/api/v1/webhooks",
 ] as const;
 
 const REQUIRED_OPERATIONS: Record<string, string[]> = {
   "/api/v1/rooms": ["post", "get"],
   "/api/v1/rooms/{id}": ["get", "delete"],
   "/api/v1/rooms/{id}/tokens": ["post"],
+  "/api/v1/rooms/{id}/recording": ["post", "delete", "get"],
+  "/api/v1/rooms/{id}/breakouts": ["post", "get", "delete", "patch"],
+  "/api/v1/rooms/{id}/streaming": ["post", "delete", "get", "patch"],
+  "/api/v1/keys": ["get", "post"],
+  "/api/v1/webhooks": ["get", "post"],
 };
 
 /** Zod schema names from Task 4 (packages/shared/src/*.ts). */
@@ -41,6 +51,30 @@ const ZOD_SCHEMA_NAMES = new Set([
   "TokenRequestSchema",
   "TokenResponseSchema",
   "UserSchema",
+  "OrgRoleSchema",
+  "LdapLoginRequestSchema",
+  "RecordingModeSchema",
+  "RecordingStatusSchema",
+  "RecordingSchema",
+  "StartRecordingRequestSchema",
+  "ApiKeyPublicSchema",
+  "CreateApiKeyRequestSchema",
+  "CreateApiKeyResponseSchema",
+  "WebhookEventNameSchema",
+  "WebhookEndpointSchema",
+  "CreateWebhookEndpointRequestSchema",
+  "CreateWebhookEndpointResponseSchema",
+  "AuditLogSchema",
+  "BreakoutAssignmentModeSchema",
+  "BreakoutSessionStatusSchema",
+  "CreateBreakoutsRequestSchema",
+  "BreakoutAssignmentSchema",
+  "BreakoutSessionSchema",
+  "BreakoutActionRequestSchema",
+  "BreakoutPacketSchema",
+  "StartStreamRequestSchema",
+  "UpdateStreamRequestSchema",
+  "StreamSchema",
 ]);
 
 const REQUIRED_SCHEMA_NAMES = [

@@ -34,8 +34,8 @@ Standing bar for every S/M task: criteria met, verification run, `pnpm --filter 
 
 ### Checkpoint: Foundation
 
-- [ ] Compose stack is healthy
-- [ ] Two-browser PoC works (see/hear each other)
+- [x] Compose stack is healthy
+- [x] Two-browser PoC works (see/hear each other)
 - [ ] CI is green
 - [x] OpenAPI skeleton is reachable
 - [ ] Review with human before Task 9 (auth)
@@ -59,7 +59,7 @@ Standing bar for every S/M task: criteria met, verification run, `pnpm --filter 
 
 ### Checkpoint: After Tasks 11-13
 
-- [ ] Two users join with A/V, switch layouts, and share a screen
+- [x] Two users join with A/V, switch layouts, and share a screen
 - [x] Token grant tests pass
 - [ ] Review with human before chat
 
@@ -99,49 +99,84 @@ Standing bar for every S/M task: criteria met, verification run, `pnpm --filter 
 ### Checkpoint: Phase 1 MVP
 
 - [x] All Phase 1 tests pass and the web app builds
-- [ ] Two (ideally three) browsers: A/V, share, public and DM chat, hand, host mute/kick/end
-- [ ] Password and lobby work
+- [x] Two (ideally three) browsers: A/V, share, public and DM chat, hand, host mute/kick/end
+- [x] Password and lobby work
 - [x] Compose-only local run; CI green
 - [x] Review with human before any Phase 2 epic
 
-Saved 2026-08-31 as git tag `checkpoint/phase-1-mvp`. Known gap: two-browser A/V can still fail on Windows Docker ICE/UDP. Split each Phase 2 epic into S/M tasks before building.
+Saved 2026-08-31 as git tag `checkpoint/phase-1-mvp`. Two-browser A/V and password/lobby were verified in live meetings (TURN/TCP on Windows Docker). Split each Phase 2 epic into S/M tasks before building.
 
 ---
 
-## Phase 2: Enterprise (epics — split before building)
+## Phase 2: Enterprise (S/M tasks — split 2026-08-31)
 
-- [ ] **E2.1:** Composite recording + PDPA consent + MinIO
-- [ ] **E2.2:** Track egress + HLS VOD
-- [ ] **E2.3:** SSO (OIDC/SAML, JIT, role mapping)
-- [ ] **E2.4:** LDAP / Active Directory
-- [ ] **E2.5:** Admin RBAC
-- [ ] **E2.6:** Public API keys + HMAC + rate limit + Swagger UI
-- [ ] **E2.7:** Signed webhooks
-- [ ] **E2.8:** Admin dashboard
-- [ ] **E2.9:** PWA / mobile web
-- [ ] **E2.10:** Audit log + retention + deletion rights
+Do not treat the E2.* rows as build units. Work the numbered tasks below.
+
+- [x] **Task 25:** Egress Compose worker + Prisma recording schema (E2.1)
+- [x] **Task 26:** Composite start/stop API + PDPA consent banner (E2.1)
+- [x] **Task 27:** Recording metadata + signed MinIO download (E2.1)
+- [x] **Task 28:** Track egress API (E2.2)
+- [x] **Task 29:** HLS VOD playlist + in-product player (E2.2)
+- [x] **Task 30:** Org-level RBAC (org_admin / host / participant) (E2.5)
+- [x] **Task 31:** Auth.js OIDC (Keycloak, Entra, Google, Okta) + JIT + group role map (E2.3)
+- [x] **Task 32:** SAML 2.0 ACS + JIT (E2.3)
+- [x] **Task 33:** LDAP / Active Directory bind and search (E2.4)
+- [x] **Task 34:** Public API keys + HMAC request signing (E2.6)
+- [x] **Task 35:** Per-key rate limit (E2.6)
+- [x] **Task 36:** Swagger UI for OpenAPI 3 (E2.6)
+- [x] **Task 37:** Signed webhooks + delivery retries (E2.7)
+- [x] **Task 38:** Admin dashboard (users, rooms, recordings, config) (E2.8)
+- [x] **Task 39:** Installable PWA, mobile meeting layout, 4G encoding defaults (E2.9)
+- [x] **Task 40:** Audit log + chat/recording retention jobs + user deletion (E2.10)
 
 ### Checkpoint: Pilot
 
-- [ ] Each started epic was split into S/M tasks and those tasks met their criteria
-- [ ] Small-org pilot is usable (not production scale)
-- [ ] Review with human before Phase 3
+- [x] Each started epic was split into S/M tasks and those tasks met their criteria
+- [ ] Small-org pilot is usable (not production scale) — recording/SSO still need a human two-browser pass
+- [x] Review with human before Phase 3
 
 ---
 
-## Phase 3: Advanced and scale (epics — split before building)
+## Phase 3: Advanced and scale (S/M tasks — split 2026-08-31)
 
-- [ ] **E3.1:** Breakout rooms
-- [ ] **E3.2:** Live streaming (RTMP / HLS)
-- [ ] **E3.3:** Native mobile apps
-- [ ] **E3.4:** Multi-node SFU + Helm
-- [ ] **E3.5:** Load test 500+ concurrent
-- [ ] **E3.6:** Embed SDK
+Do not treat the E3.* rows as build units. Work the numbered tasks below. WHEP / LL-HLS stays parked. Room cap stays 25 until a later task.
+
+- [x] **Task 41:** Breakout Prisma schema + shared contracts (E3.1)
+- [x] **Task 42:** Create/list/close breakout API (E3.1)
+- [x] **Task 43:** Child token mint + assignment gate (E3.1)
+- [x] **Task 44:** Host breakout panel + participant move control (E3.1)
+- [x] **Task 45:** Timer, broadcast, help, recall-all (E3.1)
+- [x] **Task 46:** Self-pick + moderator roam + pre-warm (E3.1)
+- [x] **Task 47:** Stream model + RTMP start/stop + consent + webhook (E3.2)
+- [x] **Task 48:** Multi-destination UpdateStream + HLS live playlist (E3.2)
+- [x] **Task 49:** In-meeting stream banner + org HLS player (E3.2)
+- [x] **Task 50:** Embed package + iframe meeting page (E3.6)
+- [x] **Task 51:** postMessage token handshake + origin allowlist (E3.6)
+- [ ] **Task 52:** Helm chart for web, Postgres, Redis, MinIO (E3.4)
+- [ ] **Task 53:** LiveKit + coturn + egress Helm values + air-gap images (E3.4)
+- [ ] **Task 54:** Load-test runner against Compose (E3.5)
+- [ ] **Task 55:** 500-concurrent + TURN/4G runbook and gates (E3.5)
+- [ ] **Task 56:** Expo app that joins with a minted token (E3.3)
+- [ ] **Task 57:** Native grid + mute (E3.3)
+- [ ] **Task 58:** PiP + background audio (E3.3)
+- [ ] **Task 59:** CallKit / ConnectionService + push (signing required) (E3.3)
+
+### Checkpoint: After Tasks 41-46 (breakouts)
+
+- [ ] Two browsers: host opens breakouts, participant lands in a child, recall returns everyone
+- [ ] Child token mint rejects unassigned participants
+- [ ] Application still builds
+
+### Checkpoint: After Tasks 47-51 (streaming + embed)
+
+- [ ] Host can start/stop RTMP; HLS live playlist is playable in-product
+- [ ] Embed iframe joins with a postMessage token; secret never in the customer page
+- [ ] Review with human before Helm and load test
 
 ### Checkpoint: Production 1.0
 
 - [ ] Pen-test completed
-- [ ] Load-test gates met
+- [ ] Load-test gates met (do not claim 500 concurrent until a sized run exists)
 - [ ] Ready for Production Release 1.0 review
 
 ---
@@ -168,3 +203,5 @@ Safe after Task 11: Tasks 12, 13, 14, and 17.
 Safe after Task 14: Task 15 with Task 16.
 
 Keep sequential: Compose → Prisma → Auth → Rooms → Tokens; Task 22 after Task 20.
+
+Phase 3: Task 41 before 42–46; 47 after 25–26; 50 after 11 and 34; 53 after 52; 55 after 54; native 56–59 last.

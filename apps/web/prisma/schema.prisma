@@ -3,6 +3,7 @@
 // https://www.prisma.io/docs/orm/v6/prisma-schema/overview
 // https://www.prisma.io/docs/orm/v6/prisma-schema/data-model/models
 // https://www.prisma.io/docs/orm/v6/prisma-schema/data-model/relations
+// https://www.prisma.io/docs/orm/v6/prisma-schema/data-model/relations/self-relations
 // https://www.prisma.io/docs/orm/v6/prisma-schema/data-model/relations/referential-actions
 
 generator client {
@@ -26,18 +27,70 @@ enum LobbyStatus {
   denied
 }
 
+enum OrgRole {
+  org_admin
+  host
+  participant
+}
+
+enum RecordingMode {
+  composite
+  tracks
+}
+
+enum RecordingStatus {
+  pending_consent
+  starting
+  active
+  finishing
+  finished
+  failed
+}
+
+enum WebhookDeliveryStatus {
+  pending
+  delivered
+  failed
+}
+
+enum BreakoutAssignmentMode {
+  auto
+  manual
+  self_pick
+}
+
+enum BreakoutSessionStatus {
+  open
+  closed
+}
+
 model User {
-  id               String            @id @default(cuid())
-  email            String            @unique
+  id               String              @id @default(cuid())
+  email            String              @unique
   name             String?
-  passwordHash     String
-  isGuest          Boolean           @default(false)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  passwordHash     String?
+  isGuest          Boolean             @default(false)
+  orgRole          OrgRole             @default(host)
+  ssoProvider      String?
+  ssoSubject       String?
+  ldapDn           String?
+  deletedAt        DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
   ownedRooms       Room[]
   participations   RoomParticipant[]
-  sentMessages     ChatMessage[]     @relation("ChatSent")
-  receivedMessages ChatMessage[]     @relation("ChatReceived")
+  sentMessages     ChatMessage[]       @relation("ChatSent")
+  receivedMessages ChatMessage[]       @relation("ChatReceived")
+  recordings       Recording[]
+  consents         RecordingConsent[]
+  streams          Stream[]
+  streamConsents   StreamConsent[]
+  apiKeys          ApiKey[]
+  webhookEndpoints WebhookEndpoint[]
+  auditLogs        AuditLog[]          @relation("AuditActor")
+  breakoutAssignments BreakoutAssignment[]
+
+  @@unique([ssoProvider, ssoSubject])
 }
 
 model Room {
@@ -57,8 +110,44 @@ model Room {
   allowChat           Boolean           @default(true)
   maxParticipants     Int               @default(25)
   chatRetentionDays   Int?
+  parentRoomId        String?
+  parentRoom          Room?               @relation("Breakouts", fields: [parentRoomId], references: [id], onDelete: Cascade)
+  breakouts           Room[]              @relation("Breakouts")
+  breakoutSessionId   String?
+  breakoutSession     BreakoutSession?    @relation(fields: [breakoutSessionId], references: [id], onDelete: SetNull)
+  hostedBreakouts     BreakoutSession[]   @relation("BreakoutParent")
+  childAssignments    BreakoutAssignment[] @relation("AssignmentChild")
   participants        RoomParticipant[]
   messages            ChatMessage[]
+  recordings          Recording[]
+  streams             Stream[]
+}
+
+model BreakoutSession {
+  id             String                  @id @default(cuid())
+  parentRoomId   String
+  parentRoom     Room                    @relation("BreakoutParent", fields: [parentRoomId], references: [id], onDelete: Cascade)
+  status         BreakoutSessionStatus   @default(open)
+  assignmentMode BreakoutAssignmentMode
+  endsAt         DateTime?
+  createdAt      DateTime                @default(now())
+  childRooms     Room[]
+  assignments    BreakoutAssignment[]
+
+  @@index([parentRoomId, status])
+}
+
+model BreakoutAssignment {
+  id          String          @id @default(cuid())
+  sessionId   String
+  userId      String
+  childRoomId String
+  session     BreakoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  childRoom   Room            @relation("AssignmentChild", fields: [childRoomId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@index([childRoomId])
 }
 
 model RoomParticipant {
@@ -87,4 +176,123 @@ model ChatMessage {
   recipient     User?    @relation("ChatReceived", fields: [recipientId], references: [id], onDelete: SetNull)
 
   @@index([roomId, createdAt])
+}
+
+model Recording {
+  id            String              @id @default(cuid())
+  roomId        String
+  startedById   String
+  mode          RecordingMode
+  status        RecordingStatus     @default(pending_consent)
+  egressIds     String[]            @default([])
+  objectKey     String?
+  hlsPrefix     String?
+  error         String?
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  createdAt     DateTime            @default(now())
+  room          Room                @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  startedBy     User                @relation(fields: [startedById], references: [id])
+  consents      RecordingConsent[]
+
+  @@index([roomId, createdAt])
+}
+
+model RecordingConsent {
+  id          String    @id @default(cuid())
+  recordingId String
+  userId      String
+  consentedAt DateTime  @default(now())
+  recording   Recording @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([recordingId, userId])
+}
+
+model Stream {
+  id          String           @id @default(cuid())
+  roomId      String
+  startedById String
+  status      RecordingStatus  @default(pending_consent)
+  rtmpUrls    String[]         @default([])
+  hlsPrefix   String?
+  egressIds   String[]         @default([])
+  error       String?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  createdAt   DateTime         @default(now())
+  room        Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  startedBy   User             @relation(fields: [startedById], references: [id])
+  consents    StreamConsent[]
+
+  @@index([roomId, createdAt])
+}
+
+model StreamConsent {
+  id          String   @id @default(cuid())
+  streamId    String
+  userId      String
+  consentedAt DateTime @default(now())
+  stream      Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([streamId, userId])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  keyId      String    @unique
+  secretEnc  String
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WebhookEndpoint {
+  id         String             @id @default(cuid())
+  userId     String
+  url        String
+  secretEnc  String
+  events     String[]
+  active     Boolean            @default(true)
+  createdAt  DateTime           @default(now())
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+}
+
+model WebhookDelivery {
+  id          String                 @id @default(cuid())
+  endpointId  String
+  event       String
+  payload     Json
+  status      WebhookDeliveryStatus  @default(pending)
+  attempts    Int                    @default(0)
+  nextRetryAt DateTime               @default(now())
+  lastError   String?
+  createdAt   DateTime               @default(now())
+  endpoint    WebhookEndpoint        @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextRetryAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+}
+
+model OrgSetting {
+  key   String @id
+  value Json
 }

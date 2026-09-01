@@ -7,17 +7,20 @@ import {
   toRoomDto,
   updateRoomSettingsForHost,
 } from "@/lib/rooms";
-import { requireSessionUser } from "@/lib/session";
+import { closeOpenBreakoutsForParent } from "@/lib/breakouts";
+import { requireApiActor } from "@/lib/api-auth";
+import { writeAudit } from "@/lib/audit";
+import { enqueueWebhook } from "@/lib/webhooks";
 import { getRoomService } from "@/lib/livekit/room-service";
 
 export const runtime = "nodejs";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  const { user, response } = await requireSessionUser();
+  const { actor: user, response } = await requireApiActor(request);
   if (!user) {
     logRequest({ method: "GET", path: `/api/v1/rooms/${id}`, status: 401 });
     return response;
@@ -41,7 +44,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  const { user, response } = await requireSessionUser();
+  const { actor: user, response } = await requireApiActor(request);
   if (!user) {
     logRequest({ method: "PATCH", path: `/api/v1/rooms/${id}`, status: 401 });
     return response;
@@ -65,11 +68,11 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  const { user, response } = await requireSessionUser();
+  const { actor: user, response } = await requireApiActor(request);
   if (!user) {
     logRequest({ method: "DELETE", path: `/api/v1/rooms/${id}`, status: 401 });
     return response;
@@ -83,6 +86,7 @@ export async function DELETE(
     });
     return jsonError(result.status, result.code, result.message);
   }
+  await closeOpenBreakoutsForParent(id);
   const livekit = getRoomService();
   if (livekit) {
     try {
@@ -91,6 +95,13 @@ export async function DELETE(
       // LiveKit room may already be gone.
     }
   }
+  await writeAudit({
+    actorId: user.id,
+    action: "room.close",
+    targetType: "room",
+    targetId: id,
+  });
+  await enqueueWebhook("room_finished", { room: { id } });
   logRequest({ method: "DELETE", path: `/api/v1/rooms/${id}`, status: 204 });
   return new Response(null, { status: 204 });
 }

@@ -5,6 +5,7 @@ import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
+import { orgRoleForNewUser } from "@/lib/rbac";
 
 export async function registerAction(
   formData: FormData,
@@ -30,6 +31,7 @@ export async function registerAction(
       name: parsed.data.name ?? null,
       passwordHash: await hashPassword(parsed.data.password),
       isGuest: false,
+      orgRole: orgRoleForNewUser(email),
     },
   });
 
@@ -66,6 +68,43 @@ export async function loginAction(
 
 export async function logoutAction(): Promise<void> {
   await signOut({ redirectTo: "/" });
+}
+
+export async function ssoSignInAction(provider: string): Promise<void> {
+  await signIn(provider, { redirectTo: "/app" });
+}
+
+export async function ldapLoginAction(
+  formData: FormData,
+): Promise<{ error: string } | void> {
+  try {
+    await signIn("credentials", {
+      ldapUsername: String(formData.get("ldapUsername") ?? ""),
+      password: String(formData.get("password") ?? ""),
+      redirectTo: "/app",
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { error: "LDAP sign-in failed." };
+    }
+    throw error;
+  }
+}
+
+export async function samlTicketSignInAction(
+  ticket: string,
+): Promise<{ error: string } | void> {
+  try {
+    await signIn("credentials", {
+      samlTicket: ticket,
+      redirectTo: "/app",
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { error: "SAML sign-in failed." };
+    }
+    throw error;
+  }
 }
 
 function emptyToUndefined(value: FormDataEntryValue | null): string | undefined {

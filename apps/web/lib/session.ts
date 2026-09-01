@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import type { OrgRole } from "@prisma/client";
 import { jsonError } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -14,15 +15,23 @@ export type SessionUser = {
   id: string;
   email: string;
   name: string | null;
+  orgRole: OrgRole;
 };
 
 export async function getSessionUser(): Promise<SessionUser | null> {
   const session = await auth();
   if (session?.user?.id) {
+    const row = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+    if (!row || row.deletedAt) {
+      return null;
+    }
     return {
-      id: session.user.id,
-      email: session.user.email ?? "",
-      name: session.user.name ?? null,
+      id: row.id,
+      email: row.email,
+      name: row.name,
+      orgRole: row.orgRole,
     };
   }
 
@@ -32,10 +41,15 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     return null;
   }
   const user = await prisma.user.findUnique({ where: { id: guestId } });
-  if (!user) {
+  if (!user || user.deletedAt) {
     return null;
   }
-  return { id: user.id, email: user.email, name: user.name };
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    orgRole: user.orgRole,
+  };
 }
 
 export async function requireSessionUser(): Promise<

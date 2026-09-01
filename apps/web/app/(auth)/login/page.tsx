@@ -1,17 +1,50 @@
 "use client";
 
-import { useState } from "react";
-import { loginAction } from "@/lib/auth-actions";
+import { useEffect, useState } from "react";
+import {
+  ldapLoginAction,
+  loginAction,
+  samlTicketSignInAction,
+  ssoSignInAction,
+} from "@/lib/auth-actions";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [providers, setProviders] = useState<
+    { id: string; label: string }[]
+  >([]);
+  const [saml, setSaml] = useState(false);
+  const [ldap, setLdap] = useState(false);
+
+  useEffect(() => {
+    void fetch("/api/auth/providers-public")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json: { oidc?: { id: string; label: string }[]; saml?: boolean; ldap?: boolean } | null) => {
+        if (!json) return;
+        setProviders(json.oidc ?? []);
+        setSaml(Boolean(json.saml));
+        setLdap(Boolean(json.ldap));
+      });
+  }, []);
+
+  useEffect(() => {
+    const ticket = new URLSearchParams(window.location.search).get("samlTicket");
+    if (!ticket) {
+      return;
+    }
+    void samlTicketSignInAction(ticket).then((result) => {
+      if (result?.error) {
+        setError(result.error);
+      }
+    });
+  }, []);
 
   return (
     <main id="main" className="mx-auto w-full max-w-md flex-1 px-page py-12">
       <h1 className="font-sans text-display font-semibold text-ink">Sign in</h1>
       <p className="mt-4 text-body text-muted">
-        Use the campus account you registered on this server.
+        Use a campus account, or an identity provider your administrator enabled.
       </p>
       <form
         className="mt-8 flex flex-col gap-4"
@@ -61,6 +94,79 @@ export default function LoginPage() {
           {pending ? "Signing in…" : "Sign in"}
         </button>
       </form>
+
+      {providers.length > 0 || saml || ldap ? (
+        <div className="mt-10 border-t border-line pt-8">
+          <p className="text-body font-semibold text-ink">Organization sign-in</p>
+          <div className="mt-4 flex flex-col gap-3">
+            {providers.map((provider) => (
+              <form
+                key={provider.id}
+                action={async () => {
+                  await ssoSignInAction(provider.id);
+                }}
+              >
+                <button type="submit" className="sru-cta-secondary w-full">
+                  Continue with {provider.label}
+                </button>
+              </form>
+            ))}
+            {saml ? (
+              <button
+                type="button"
+                className="sru-cta-secondary"
+                onClick={() => {
+                  window.location.href = "/api/auth/saml";
+                }}
+              >
+                Continue with SAML
+              </button>
+            ) : null}
+          </div>
+          {ldap ? (
+            <form
+              className="mt-6 flex flex-col gap-3"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                setPending(true);
+                const result = await ldapLoginAction(
+                  new FormData(event.currentTarget),
+                );
+                if (result?.error) {
+                  setError(result.error);
+                  setPending(false);
+                }
+              }}
+            >
+              <label htmlFor="ldapUsername" className="sru-label">
+                LDAP username
+              </label>
+              <input
+                id="ldapUsername"
+                name="ldapUsername"
+                className="sru-input"
+                autoComplete="username"
+                required
+              />
+              <label htmlFor="ldapPassword" className="sru-label">
+                LDAP password
+              </label>
+              <input
+                id="ldapPassword"
+                name="password"
+                type="password"
+                className="sru-input"
+                autoComplete="current-password"
+                required
+              />
+              <button type="submit" className="sru-cta-secondary">
+                Sign in with LDAP
+              </button>
+            </form>
+          ) : null}
+        </div>
+      ) : null}
+
       <p className="mt-8 text-body text-muted">
         No account?{" "}
         <a href="/register" className="text-ink underline">

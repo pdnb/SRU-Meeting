@@ -1,5 +1,7 @@
 import { logoutAction } from "@/lib/auth-actions";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { isOrgAdmin } from "@/lib/rbac";
 
 export default async function AppShellLayout({
   children,
@@ -8,6 +10,10 @@ export default async function AppShellLayout({
 }>) {
   const session = await auth();
   const email = session?.user?.email ?? "";
+  const actor = session?.user?.id
+    ? await prisma.user.findUnique({ where: { id: session.user.id } })
+    : null;
+  const admin = actor ? isOrgAdmin(actor.orgRole) : false;
 
   return (
     <div className="flex min-h-dvh flex-col bg-canvas text-ink">
@@ -20,6 +26,14 @@ export default async function AppShellLayout({
           <a href="/app" className="font-semibold text-ink">
             Rooms
           </a>
+          <a href="/app/account" className="text-ink">
+            Account
+          </a>
+          {admin ? (
+            <a href="/app/admin" className="text-ink">
+              Admin
+            </a>
+          ) : null}
           {email ? (
             <span className="text-muted">{email}</span>
           ) : (

@@ -2,9 +2,13 @@
 
 import { LiveKitRoom } from "@livekit/components-react";
 import type { Room } from "@sru/shared";
+import { BreakoutMoveProvider } from "@/components/meeting/BreakoutMoveProvider";
 import { MeetingChrome } from "@/components/meeting/MeetingChrome";
-import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
-import { useState } from "react";
+import {
+  connectOptionsForLiveKitUrl,
+  readBrowserNetworkHints,
+  roomOptionsForNetwork,
+} from "@/lib/livekit/connect-options";
 
 export function MeetingRoom({
   room,
@@ -23,18 +27,6 @@ export function MeetingRoom({
   audio: boolean;
   video: boolean;
 }) {
-  const [error, setError] = useState<string | null>(null);
-
-  if (error) {
-    return (
-      <MeetingErrorState
-        title="Could not stay connected"
-        message={error}
-        onRetry={() => window.location.reload()}
-      />
-    );
-  }
-
   return (
     <LiveKitRoom
       serverUrl={url}
@@ -42,10 +34,13 @@ export function MeetingRoom({
       connect
       audio={audio}
       video={video}
-      onError={(err) => setError(err.message)}
+      connectOptions={connectOptionsForLiveKitUrl(url)}
+      options={roomOptionsForNetwork(readBrowserNetworkHints())}
       className="h-full"
     >
-      <MeetingChrome room={room} userId={userId} role={role} />
+      <BreakoutMoveProvider userId={userId}>
+        <MeetingChrome room={room} userId={userId} role={role} />
+      </BreakoutMoveProvider>
     </LiveKitRoom>
   );
 }

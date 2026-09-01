@@ -1,0 +1,10 @@
+apiVersion: v2
+name: sru-conf
+description: SRU-Conf web app with Postgres, Redis, and MinIO (data plane). LiveKit/coturn/egress are separate (Task 53).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+# Compose remains the documented local/small-org default — see infra/README.md.
+# Sources:
+#   https://helm.sh/docs/topics/charts/
+#   https://helm.sh/docs/chart_best_practices/

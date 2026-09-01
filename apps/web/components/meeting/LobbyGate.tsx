@@ -31,6 +31,7 @@ export function LobbyGate({ roomId }: { roomId: string }) {
       const json = (await res.json()) as { data: Knock[] };
       setKnocks(json.data);
     }
+    void refresh();
     const id = window.setInterval(() => {
       void refresh();
     }, 2000);

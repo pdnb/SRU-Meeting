@@ -1,11 +1,12 @@
 "use client";
 
 import type { Room, TokenResponse } from "@sru/shared";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
 import { MeetingRoom } from "@/components/meeting/MeetingRoom";
 import { Prejoin, type PrejoinResult } from "@/components/meeting/Prejoin";
 import { WaitingRoom } from "@/components/meeting/WaitingRoom";
+import { peekBreakoutMove, takeBreakoutMove } from "@/lib/breakout-move";
 import "@/app/meeting.css";
 
 type Phase = "prejoin" | "waiting" | "in-room" | "denied" | "error";
@@ -23,16 +24,25 @@ export function MeetingSession({
   guest?: boolean;
   defaultName?: string;
 }) {
+  const [move] = useState(() => peekBreakoutMove(room.id));
   const [phase, setPhase] = useState<Phase>(
-    room.finishedAt ? "error" : "prejoin",
+    room.finishedAt ? "error" : move ? "in-room" : "prejoin",
   );
-  const [token, setToken] = useState<TokenResponse | null>(null);
+  const [token, setToken] = useState<TokenResponse | null>(
+    move ? { token: move.token, url: move.url } : null,
+  );
   const [devices, setDevices] = useState<PrejoinResult>({
-    audio: true,
-    video: true,
+    audio: move?.audio ?? true,
+    video: move?.video ?? true,
   });
   const error = room.finishedAt ? "This meeting has ended." : "";
   const [lastJoin, setLastJoin] = useState<PrejoinResult | null>(null);
+
+  useEffect(() => {
+    if (move) {
+      takeBreakoutMove(room.id);
+    }
+  }, [move, room.id]);
 
   const requestToken = useCallback(
     async (result: PrejoinResult) => {

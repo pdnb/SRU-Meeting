@@ -3,7 +3,13 @@
 import type { Room } from "@sru/shared";
 import { useState } from "react";
 
-export function RoomsManager({ initialRooms }: { initialRooms: Room[] }) {
+export function RoomsManager({
+  initialRooms,
+  canCreate = true,
+}: {
+  initialRooms: Room[];
+  canCreate?: boolean;
+}) {
   const [rooms, setRooms] = useState(initialRooms);
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +28,7 @@ export function RoomsManager({ initialRooms }: { initialRooms: Room[] }) {
   return (
     <main id="app-main" className="mx-auto w-full max-w-3xl flex-1 px-page py-12">
       <h1 className="font-sans text-display font-semibold text-ink">Rooms</h1>
+      {canCreate ? (
       <form
         className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end"
         onSubmit={async (event) => {
@@ -60,6 +67,11 @@ export function RoomsManager({ initialRooms }: { initialRooms: Room[] }) {
           {pending ? "Creating…" : "Create room"}
         </button>
       </form>
+      ) : (
+        <p className="mt-8 text-body text-muted">
+          Your organization role can join rooms but cannot create them.
+        </p>
+      )}
       {error ? (
         <p role="alert" className="sru-error mt-4">
           {error}

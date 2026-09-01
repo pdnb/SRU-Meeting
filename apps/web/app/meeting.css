@@ -133,6 +133,72 @@
   border-bottom: 1px solid #3f3f46;
 }
 
+.sru-record-banner {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 5;
+  max-width: min(28rem, calc(100vw - 1.5rem));
+  padding: 0.75rem 1rem;
+  background: #18181b;
+  border: 1px solid #9f1239;
+  border-radius: 0.25rem;
+  color: #f4f4f5;
+}
+
+.sru-breakout-banner {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  max-width: min(28rem, calc(100vw - 1.5rem));
+  padding: 0.75rem 1rem;
+  background: #18181b;
+  border: 1px solid #3f3f46;
+  border-radius: 0.25rem;
+  color: #f4f4f5;
+}
+
+.sru-breakout-banner p {
+  margin: 0;
+}
+
+@media (max-width: 40rem) {
+  .sru-meet-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .sru-meet-bar {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .sru-meet-panel {
+    inset: 0;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .sru-record-banner {
+    left: 0.5rem;
+    right: 0.5rem;
+    max-width: none;
+  }
+
+  .sru-breakout-banner {
+    left: 0.5rem;
+    right: 0.5rem;
+    max-width: none;
+  }
+}
+
 .sru-reaction {
   position: absolute;
   left: 50%;

@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { OrgRoleSchema } from "./org";
 
 // Zod 4 object / email / ISO datetime APIs:
 // https://zod.dev/api
@@ -9,9 +10,16 @@ export const UserSchema = z.object({
   id: z.string().min(1),
   email: z.email(),
   name: z.string().nullable(),
+  orgRole: OrgRoleSchema.optional(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
+
+export const LdapLoginRequestSchema = z.object({
+  username: z.string().trim().min(1).max(128),
+  password: z.string().min(1).max(128),
+});
+
 
 export const RegisterRequestSchema = z.object({
   email: z.email(),
@@ -39,5 +47,6 @@ export const TokenResponseSchema = z.object({
 export type User = z.infer<typeof UserSchema>;
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
+export type LdapLoginRequest = z.infer<typeof LdapLoginRequestSchema>;
 export type TokenRequest = z.infer<typeof TokenRequestSchema>;
 export type TokenResponse = z.infer<typeof TokenResponseSchema>;

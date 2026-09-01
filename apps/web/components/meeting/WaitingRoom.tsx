@@ -28,6 +28,7 @@ export function WaitingRoom({
       }
       setStatus(json.self ?? "pending");
     }
+    void poll();
     const id = window.setInterval(() => {
       void poll();
     }, 2000);

@@ -1,0 +1,83 @@
+# Placeholder values only. Never commit production credentials.
+# Override at install time, e.g.:
+#   helm upgrade --install sru infra/helm/sru-conf \
+#     --set postgres.auth.password=$POSTGRES_PASSWORD \
+#     --set minio.auth.rootPassword=$MINIO_PASSWORD \
+#     --set web.secrets.authSecret=$AUTH_SECRET
+
+nameOverride: ""
+fullnameOverride: ""
+
+web:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: sru-conf/web
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
+  # Application env (non-secret). Wire LiveKit URL after Task 53.
+  env:
+    AUTH_URL: "http://localhost:3000"
+    LIVEKIT_URL: ""
+    S3_ENDPOINT: "http://sru-conf-minio:9000"
+    S3_INTERNAL_ENDPOINT: "http://sru-conf-minio:9000"
+    S3_BUCKET: sru-chat
+    S3_RECORDINGS_BUCKET: sru-chat
+    S3_REGION: us-east-1
+    EMBED_ALLOWED_ORIGINS: ""
+  # Secret keys are referenced from an existing Secret, or from inline placeholders below.
+  secrets:
+    # Prefer an external Secret / sealed-secret in production.
+    existingSecret: ""
+    # Inline placeholders used only when existingSecret is empty. Replace before install.
+    authSecret: "REPLACE_ME"
+    livekitApiKey: "REPLACE_ME"
+    livekitApiSecret: "REPLACE_ME"
+    s3AccessKey: "REPLACE_ME"
+    s3SecretKey: "REPLACE_ME"
+    internalCronSecret: "REPLACE_ME"
+
+postgres:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    username: sru
+    password: "REPLACE_ME"
+    database: sru_conf
+  persistence:
+    enabled: true
+    size: 10Gi
+  service:
+    port: 5432
+
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    port: 6379
+
+minio:
+  enabled: true
+  image:
+    repository: minio/minio
+    tag: latest
+    pullPolicy: IfNotPresent
+  auth:
+    rootUser: "REPLACE_ME"
+    rootPassword: "REPLACE_ME"
+  persistence:
+    enabled: true
+    size: 20Gi
+  service:
+    apiPort: 9000
+    consolePort: 9001
+  consoleAddress: ":9001"

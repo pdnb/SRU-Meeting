@@ -9,7 +9,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getServerEnv } from "@/lib/env";
+import { getServerEnv, recordingsBucket } from "@/lib/env";
 
 export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 export const SIGNED_URL_EXPIRES_SECONDS = 15 * 60;
@@ -117,11 +117,77 @@ export async function uploadAttachment(input: {
   return key;
 }
 
-export async function signDownloadUrl(key: string): Promise<string> {
+export async function signDownloadUrl(
+  key: string,
+  expiresIn = SIGNED_URL_EXPIRES_SECONDS,
+): Promise<string> {
   const { client, bucket } = requireS3();
   return getSignedUrl(
     client,
     new GetObjectCommand({ Bucket: bucket, Key: key }),
-    { expiresIn: SIGNED_URL_EXPIRES_SECONDS },
+    { expiresIn },
   );
+}
+
+export async function signRecordingDownloadUrl(
+  key: string,
+  expiresIn = SIGNED_URL_EXPIRES_SECONDS,
+): Promise<string> {
+  const env = getServerEnv();
+  const bucket = recordingsBucket();
+  if (
+    !env.S3_ENDPOINT ||
+    !env.S3_ACCESS_KEY ||
+    !env.S3_SECRET_KEY ||
+    !bucket
+  ) {
+    throw new Error("Object storage is not configured");
+  }
+  const client = new S3Client({
+    region: env.S3_REGION ?? "us-east-1",
+    endpoint: env.S3_ENDPOINT,
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: env.S3_ACCESS_KEY,
+      secretAccessKey: env.S3_SECRET_KEY,
+    },
+  });
+  return getSignedUrl(
+    client,
+    new GetObjectCommand({ Bucket: bucket, Key: key }),
+    { expiresIn },
+  );
+}
+
+export async function getRecordingObject(key: string): Promise<{
+  body: Uint8Array;
+  contentType: string;
+}> {
+  const env = getServerEnv();
+  const bucket = recordingsBucket();
+  if (
+    !env.S3_ENDPOINT ||
+    !env.S3_ACCESS_KEY ||
+    !env.S3_SECRET_KEY ||
+    !bucket
+  ) {
+    throw new Error("Object storage is not configured");
+  }
+  const client = new S3Client({
+    region: env.S3_REGION ?? "us-east-1",
+    endpoint: env.S3_ENDPOINT,
+    forcePathStyle: true,
+    credentials: {
+      accessKeyId: env.S3_ACCESS_KEY,
+      secretAccessKey: env.S3_SECRET_KEY,
+    },
+  });
+  const result = await client.send(
+    new GetObjectCommand({ Bucket: bucket, Key: key }),
+  );
+  const bytes = result.Body ? await result.Body.transformToByteArray() : new Uint8Array();
+  return {
+    body: bytes,
+    contentType: result.ContentType ?? "application/octet-stream",
+  };
 }

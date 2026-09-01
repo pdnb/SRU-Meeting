@@ -96,8 +96,13 @@ services:
       - "--no-dtls"
       - "--no-multicast-peers"
       - "--external-ip=127.0.0.1"
+      # Default coturn denies RFC1918 peers. LiveKit sits on this Compose net.
+      - "--allowed-peer-ip=172.19.0.0-172.19.255.255"
       - "--min-port=49160"
       - "--max-port=49200"
+    networks:
+      default:
+        ipv4_address: 172.19.0.11
     ports:
       - "127.0.0.1:3478:3478"
       - "127.0.0.1:3478:3478/udp"
@@ -121,6 +126,9 @@ services:
     command: ["--config", "/etc/livekit.yaml", "--bind", "0.0.0.0"]
     volumes:
       - ./livekit.yaml:/etc/livekit.yaml:ro
+    networks:
+      default:
+        ipv4_address: 172.19.0.10
     ports:
       - "127.0.0.1:7880:7880"
       - "127.0.0.1:7881:7881"
@@ -143,6 +151,39 @@ services:
       retries: 6
       start_period: 20s
 
+  # Isolated worker pool. Official note: Chrome sandbox needs SYS_ADMIN,
+  # and RoomComposite needs extra shm. Never run this in the SFU container.
+  # https://docs.livekit.io/transport/self-hosting/egress/
+  egress:
+    image: livekit/egress:v1.10.0
+    restart: unless-stopped
+    cap_add:
+      - SYS_ADMIN
+    shm_size: "1g"
+    environment:
+      EGRESS_CONFIG_FILE: /etc/egress.yaml
+    volumes:
+      - ./egress.yaml:/etc/egress.yaml:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+      livekit:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8081/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 40s
+
 volumes:
   postgres_data:
   minio_data:
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16

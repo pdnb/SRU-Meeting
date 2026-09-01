@@ -46,6 +46,7 @@ function roomRow(overrides: Record<string, unknown> = {}) {
     allowChat: true,
     maxParticipants: 25,
     chatRetentionDays: null,
+    parentRoomId: null,
     ...overrides,
   };
 }
@@ -122,6 +123,7 @@ describe("room API helpers", () => {
     expect(prisma.room.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
+          parentRoomId: null,
           OR: expect.arrayContaining([
             { ownerId: guestId },
             {

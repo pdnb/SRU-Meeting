@@ -14,6 +14,7 @@ const SECRET_KEYS = [
   "AUTH_SECRET",
   "S3_SECRET_KEY",
   "DATABASE_URL",
+  "INTERNAL_CRON_SECRET",
 ] as const;
 
 export function buildHealthPayload(

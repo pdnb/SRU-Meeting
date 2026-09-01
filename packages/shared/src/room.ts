@@ -26,6 +26,7 @@ export const RoomSchema = z.object({
   allowScreenShare: z.boolean().optional(),
   allowChat: z.boolean().optional(),
   maxParticipants: z.number().int().positive().optional(),
+  parentRoomId: z.string().min(1).nullable().optional(),
 });
 
 export const UpdateRoomSettingsSchema = z.object({

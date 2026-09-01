@@ -3,7 +3,9 @@ import "server-only";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getParticipation, getRoomRecord, isModeratorRole } from "@/lib/rooms";
+import { writeAudit } from "@/lib/audit";
 import { liveKitIdentity, getRoomService } from "@/lib/livekit/room-service";
+import { enqueueWebhook } from "@/lib/webhooks";
 
 export const ModerationRequestSchema = z.object({
   action: z.enum([
@@ -33,6 +35,21 @@ export function assertCanModerate(role: string | null): boolean {
 }
 
 export async function applyModeration(input: {
+  roomId: string;
+  actorId: string;
+  body: ModerationRequest;
+}): Promise<
+  | { ok: true; result: Record<string, unknown> }
+  | { ok: false; status: number; code: string; message: string }
+> {
+  const result = await runModeration(input);
+  if (result.ok) {
+    return finishModeration(input, result);
+  }
+  return result;
+}
+
+async function runModeration(input: {
   roomId: string;
   actorId: string;
   body: ModerationRequest;
@@ -230,6 +247,35 @@ export async function applyModeration(input: {
         message: "Unknown action",
       };
   }
+}
+
+async function finishModeration(
+  input: {
+    roomId: string;
+    actorId: string;
+    body: ModerationRequest;
+  },
+  result: { ok: true; result: Record<string, unknown> },
+): Promise<{ ok: true; result: Record<string, unknown> }> {
+  await writeAudit({
+    actorId: input.actorId,
+    action: `moderation.${input.body.action}`,
+    targetType: "room",
+    targetId: input.roomId,
+    metadata: {
+      targetUserId: input.body.targetUserId,
+    },
+  });
+  if (input.body.action === "end") {
+    await enqueueWebhook("room_finished", { room: { id: input.roomId } });
+  }
+  if (input.body.action === "kick" || input.body.action === "ban") {
+    await enqueueWebhook("participant_left", {
+      room: { id: input.roomId },
+      participant: { id: input.body.targetUserId },
+    });
+  }
+  return result;
 }
 
 export { isModeratorRole };

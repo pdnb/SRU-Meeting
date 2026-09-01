@@ -31,6 +31,7 @@ export function toRoomDto(room: {
   allowScreenShare?: boolean;
   allowChat?: boolean;
   maxParticipants?: number;
+  parentRoomId?: string | null;
 }): Room {
   return RoomSchema.parse({
     id: room.id,
@@ -47,6 +48,7 @@ export function toRoomDto(room: {
     allowScreenShare: room.allowScreenShare,
     allowChat: room.allowChat,
     maxParticipants: room.maxParticipants ?? DEFAULT_MAX_PARTICIPANTS,
+    parentRoomId: room.parentRoomId ?? null,
   });
 }
 
@@ -109,6 +111,7 @@ export async function createRoomForUser(
 export async function listRoomsForUser(userId: string): Promise<Room[]> {
   const rooms = await prisma.room.findMany({
     where: {
+      parentRoomId: null,
       OR: [
         { ownerId: userId },
         {

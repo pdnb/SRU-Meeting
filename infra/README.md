@@ -1,6 +1,6 @@
 # Local media stack
 
-One-command local data and media plane for SRU-Conf: LiveKit, Redis, Postgres, coturn, and MinIO.
+One-command local data and media plane for SRU-Conf: LiveKit, Redis, Postgres, coturn, MinIO, and an isolated LiveKit Egress worker (recording).
 
 ```powershell
 docker compose -f infra/docker-compose.yml up -d
@@ -63,8 +63,10 @@ Those ranges change after reboots and Hyper-V/WinNAT activity, so carving a “s
 **If mux UDP still fails for media:**
 
 1. ICE-over-TCP **7881** (already published).
-2. coturn TURN **3478/udp** (already published).
+2. coturn TURN **3478/tcp** (preferred on Windows Docker Desktop) then **3478/udp**.
 3. Production firewall path: **TCP 443** TURN/TLS (not bound locally — see below).
+
+On this host, Docker Desktop does not complete ICE/UDP to `127.0.0.1:7882`. LiveKit therefore advertises its Compose address `172.19.0.10`, coturn is allowed to relay to `172.19.0.0/16`, and the local web client forces `iceTransportPolicy: "relay"` so media uses TURN/TCP. Do not copy that relay-only client setting to production.
 
 **Linux / production:** restore `rtc.port_range_start: 50000` and `port_range_end: 60000`, drop `udp_port`, and publish or host-network 50000–60000/udp. Do not use this Windows mux as a production design.
 
@@ -107,6 +109,15 @@ Published on **127.0.0.1** only so the stack is not reachable from other machine
 | 6380/tcp | Redis | Optional host debug. LiveKit uses `redis:6379` on the Compose network. Host 6379 is often taken (Laragon). |
 | 9000/tcp | MinIO | S3 API |
 | 9002/tcp | MinIO | Console UI (container 9001). Host 9001 is often taken (Laravel Herd). |
+
+The **egress** worker has no host ports. It talks to LiveKit over Redis on the Compose network and uploads recordings to MinIO. Health is internal (`health_port: 8081`).
+
+Webhook retries and chat/recording retention are not a Compose sidecar. Call these from cron (Bearer `INTERNAL_CRON_SECRET`):
+
+```powershell
+curl.exe -X POST -H "Authorization: Bearer $env:INTERNAL_CRON_SECRET" http://localhost:3000/api/internal/webhooks/tick
+curl.exe -X POST -H "Authorization: Bearer $env:INTERNAL_CRON_SECRET" http://localhost:3000/api/internal/retention
+```
 
 Do not publish MinIO, Postgres, or Redis on `0.0.0.0`.
 

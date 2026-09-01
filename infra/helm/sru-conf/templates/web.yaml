@@ -1,0 +1,130 @@
+{{- if .Values.web.enabled }}
+{{- if not .Values.web.secrets.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "sru-conf.secretName" . }}
+  labels:
+    {{- include "sru-conf.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  AUTH_SECRET: {{ .Values.web.secrets.authSecret | quote }}
+  LIVEKIT_API_KEY: {{ .Values.web.secrets.livekitApiKey | quote }}
+  LIVEKIT_API_SECRET: {{ .Values.web.secrets.livekitApiSecret | quote }}
+  S3_ACCESS_KEY: {{ .Values.web.secrets.s3AccessKey | quote }}
+  S3_SECRET_KEY: {{ .Values.web.secrets.s3SecretKey | quote }}
+  INTERNAL_CRON_SECRET: {{ .Values.web.secrets.internalCronSecret | quote }}
+  POSTGRES_PASSWORD: {{ .Values.postgres.auth.password | quote }}
+  MINIO_ROOT_USER: {{ .Values.minio.auth.rootUser | quote }}
+  MINIO_ROOT_PASSWORD: {{ .Values.minio.auth.rootPassword | quote }}
+  DATABASE_URL: {{ printf "postgresql://%s:%s@%s:%v/%s" .Values.postgres.auth.username .Values.postgres.auth.password (include "sru-conf.postgres.fullname" .) .Values.postgres.service.port .Values.postgres.auth.database | quote }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sru-conf.web.fullname" . }}
+  labels:
+    {{- include "sru-conf.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  replicas: {{ .Values.web.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: web
+    spec:
+      containers:
+        - name: web
+          image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.web.service.port }}
+          env:
+            - name: AUTH_URL
+              value: {{ .Values.web.env.AUTH_URL | quote }}
+            - name: LIVEKIT_URL
+              value: {{ .Values.web.env.LIVEKIT_URL | quote }}
+            - name: S3_ENDPOINT
+              value: {{ .Values.web.env.S3_ENDPOINT | quote }}
+            - name: S3_INTERNAL_ENDPOINT
+              value: {{ .Values.web.env.S3_INTERNAL_ENDPOINT | quote }}
+            - name: S3_BUCKET
+              value: {{ .Values.web.env.S3_BUCKET | quote }}
+            - name: S3_RECORDINGS_BUCKET
+              value: {{ .Values.web.env.S3_RECORDINGS_BUCKET | quote }}
+            - name: S3_REGION
+              value: {{ .Values.web.env.S3_REGION | quote }}
+            - name: EMBED_ALLOWED_ORIGINS
+              value: {{ .Values.web.env.EMBED_ALLOWED_ORIGINS | quote }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sru-conf.secretName" . }}
+                  key: DATABASE_URL
+            - name: AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sru-conf.secretName" . }}
+                  key: AUTH_SECRET
+            - name: LIVEKIT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sru-conf.secretName" . }}
+                  key: LIVEKIT_API_KEY
+            - name: LIVEKIT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sru-conf.secretName" . }}
+                  key: LIVEKIT_API_SECRET
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sru-conf.secretName" . }}
+                  key: S3_ACCESS_KEY
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sru-conf.secretName" . }}
+                  key: S3_SECRET_KEY
+            - name: INTERNAL_CRON_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sru-conf.secretName" . }}
+                  key: INTERNAL_CRON_SECRET
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sru-conf.web.fullname" . }}
+  labels:
+    {{- include "sru-conf.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  type: {{ .Values.web.service.type }}
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: web
+  ports:
+    - name: http
+      port: {{ .Values.web.service.port }}
+      targetPort: http
+{{- end }}

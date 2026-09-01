@@ -11,6 +11,8 @@ import {
 } from "@/lib/guest-proof";
 import { guestsAreAllowed } from "@/lib/join-policy";
 import { evaluateJoinAccess } from "@/lib/join";
+import { assertBreakoutChildJoin } from "@/lib/breakouts";
+import { ensureLiveKitRoom } from "@/lib/livekit/room-service";
 import { buildVideoGrantForRole, mintAccessToken } from "@/lib/livekit/token";
 import { upsertLobbyRequest } from "@/lib/lobby";
 import { hashPassword, verifyPassword } from "@/lib/password";
@@ -67,13 +69,31 @@ export async function mintRoomJoinToken(input: {
         name: parsed.data.name ?? "Guest",
         passwordHash: await hashPassword(crypto.randomUUID()),
         isGuest: true,
+        orgRole: "participant",
       },
     });
-    user = { id: guest.id, email: guest.email, name: guest.name };
+    user = {
+      id: guest.id,
+      email: guest.email,
+      name: guest.name,
+      orgRole: "participant",
+    };
     setGuestCookie = encodeGuestCookie(guest.id, guestCookieSecret());
   }
 
   const participation = await getParticipation(input.roomId, user.id);
+  let breakoutRole: "host" | "cohost" | "participant" | undefined;
+  if (room.parentRoomId) {
+    const gate = await assertBreakoutChildJoin({
+      userId: user.id,
+      child: room,
+    });
+    if (!gate.ok) {
+      return gate;
+    }
+    breakoutRole = gate.role;
+  }
+
   const passwordOk = room.passwordHash
     ? parsed.data.password
       ? await verifyPassword(room.passwordHash, parsed.data.password)
@@ -103,13 +123,15 @@ export async function mintRoomJoinToken(input: {
     return decision;
   }
 
+  const role = breakoutRole ?? decision.role;
+
   await prisma.roomParticipant.upsert({
     where: { roomId_userId: { roomId: input.roomId, userId: user.id } },
-    update: { lobbyStatus: "admitted" },
+    update: { lobbyStatus: "admitted", role },
     create: {
       roomId: input.roomId,
       userId: user.id,
-      role: decision.role,
+      role,
       banned: false,
       lobbyStatus: "admitted",
     },
@@ -125,6 +147,10 @@ export async function mintRoomJoinToken(input: {
     };
   }
 
+  if (room.parentRoomId) {
+    await ensureLiveKitRoom(input.roomId);
+  }
+
   const token = await mintAccessToken({
     apiKey: env.LIVEKIT_API_KEY,
     apiSecret: env.LIVEKIT_API_SECRET,
@@ -133,7 +159,7 @@ export async function mintRoomJoinToken(input: {
     name: user.name ?? parsed.data.name ?? user.email,
     grant: buildVideoGrantForRole({
       roomName: input.roomId,
-      role: decision.role,
+      role,
       allowScreenShare: room.allowScreenShare,
       allowChat: room.allowChat,
     }),

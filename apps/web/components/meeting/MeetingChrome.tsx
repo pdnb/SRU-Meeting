@@ -12,6 +12,14 @@ import {
 } from "@livekit/components-react";
 import { ConnectionState, RoomEvent, Track } from "livekit-client";
 import { useEffect, useMemo, useState } from "react";
+import {
+  BreakoutChildBar,
+  BreakoutHelpNotice,
+  BreakoutJoinBanner,
+  BreakoutPanel,
+  useOpenBreakout,
+} from "@/components/meeting/BreakoutPanel";
+import { useBreakoutMove } from "@/components/meeting/BreakoutMoveProvider";
 import { ChatPanel } from "@/components/meeting/ChatPanel";
 import { HandQueue } from "@/components/meeting/HandQueue";
 import {
@@ -25,6 +33,10 @@ import { ParticipantList } from "@/components/meeting/ParticipantList";
 import { RaiseHand } from "@/components/meeting/RaiseHand";
 import { Reactions } from "@/components/meeting/Reactions";
 import { RoomSettings } from "@/components/meeting/RoomSettings";
+import { RecordButton } from "@/components/meeting/RecordButton";
+import { RecordingConsent } from "@/components/meeting/RecordingConsent";
+import { StreamBanner } from "@/components/meeting/StreamBanner";
+import { StreamButton } from "@/components/meeting/StreamButton";
 import { ScreenShareButton } from "@/components/meeting/ScreenShareButton";
 import { GridView } from "@/components/meeting/layouts/GridView";
 import { SidebarView } from "@/components/meeting/layouts/SidebarView";
@@ -55,18 +67,83 @@ export function MeetingChrome({
   const [layout, setLayout] = useState<MeetingLayout>("grid");
   const [room, setRoom] = useState(initialRoom);
   const [panel, setPanel] = useState<
-    "none" | "chat" | "people" | "settings"
+    "none" | "chat" | "people" | "settings" | "breakouts"
   >("none");
   const [spotlight, setSpotlight] = useState<string | undefined>();
   const [ended, setEnded] = useState(Boolean(initialRoom.finishedAt));
+  const [recording, setRecording] = useState<{
+    id: string;
+    status:
+      | "pending_consent"
+      | "starting"
+      | "active"
+      | "finishing"
+      | "finished"
+      | "failed";
+    consentedUserIds?: string[];
+  } | null>(null);
+  const [streaming, setStreaming] = useState<{
+    id: string;
+    status:
+      | "pending_consent"
+      | "starting"
+      | "active"
+      | "finishing"
+      | "finished"
+      | "failed";
+    consentedUserIds?: string[];
+  } | null>(null);
 
   const moderator = role === "host" || role === "cohost";
+  const inChild = Boolean(room.parentRoomId);
+  const breakouts = useOpenBreakout(room.parentRoomId ?? room.id);
+  const moveToRoom = useBreakoutMove();
 
   useEffect(() => {
     const onMeta = (metadata: string) => {
       try {
-        const parsed = JSON.parse(metadata) as { spotlightIdentity?: string };
+        const parsed = JSON.parse(metadata) as {
+          spotlightIdentity?: string;
+          recording?: {
+            id: string;
+            status:
+              | "pending_consent"
+              | "starting"
+              | "active"
+              | "finishing"
+              | "finished"
+              | "failed";
+          } | null;
+          streaming?: {
+            id: string;
+            status:
+              | "pending_consent"
+              | "starting"
+              | "active"
+              | "finishing"
+              | "finished"
+              | "failed";
+          } | null;
+        };
         setSpotlight(parsed.spotlightIdentity);
+        if (parsed.recording) {
+          setRecording((current) => ({
+            id: parsed.recording!.id,
+            status: parsed.recording!.status,
+            consentedUserIds: current?.consentedUserIds,
+          }));
+        } else if (parsed.recording === null) {
+          setRecording(null);
+        }
+        if (parsed.streaming) {
+          setStreaming((current) => ({
+            id: parsed.streaming!.id,
+            status: parsed.streaming!.status,
+            consentedUserIds: current?.consentedUserIds,
+          }));
+        } else if (parsed.streaming === null) {
+          setStreaming(null);
+        }
       } catch {
         // ignore
       }
@@ -79,6 +156,56 @@ export function MeetingChrome({
       livekitRoom.off(RoomEvent.RoomMetadataChanged, onMeta);
     };
   }, [livekitRoom]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      const [recordingRes, streamingRes] = await Promise.all([
+        fetch(`/api/v1/rooms/${room.id}/recording`),
+        fetch(`/api/v1/rooms/${room.id}/streaming`),
+      ]);
+      if (!cancelled && recordingRes.ok) {
+        const json = (await recordingRes.json()) as {
+          data: {
+            id: string;
+            status:
+              | "pending_consent"
+              | "starting"
+              | "active"
+              | "finishing"
+              | "finished"
+              | "failed";
+            consentedUserIds?: string[];
+          } | null;
+        };
+        setRecording(json.data);
+      }
+      if (!cancelled && streamingRes.ok) {
+        const json = (await streamingRes.json()) as {
+          data: {
+            id: string;
+            status:
+              | "pending_consent"
+              | "starting"
+              | "active"
+              | "finishing"
+              | "finished"
+              | "failed";
+            consentedUserIds?: string[];
+          } | null;
+        };
+        setStreaming(json.data);
+      }
+    };
+    void poll();
+    const timer = window.setInterval(() => {
+      void poll();
+    }, 4000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [room.id]);
 
   const tiles = useMemo(() => {
     const screens = screenTracks.map((trackRef) => ({
@@ -140,6 +267,39 @@ export function MeetingChrome({
         {layout === "sidebar" ? (
           <SidebarView tiles={tiles} mainId={mainId} />
         ) : null}
+        {recording ? (
+          <RecordingConsent
+            roomId={room.id}
+            userId={userId}
+            recording={recording}
+          />
+        ) : null}
+        {streaming ? (
+          <StreamBanner
+            roomId={room.id}
+            userId={userId}
+            stream={streaming}
+          />
+        ) : null}
+        {!moderator && !inChild ? (
+          <BreakoutJoinBanner
+            session={breakouts.session}
+            userId={userId}
+            maxParticipants={room.maxParticipants ?? 25}
+            onMove={moveToRoom}
+          />
+        ) : null}
+        {moderator && !inChild ? (
+          <BreakoutHelpNotice session={breakouts.session} />
+        ) : null}
+        {inChild && room.parentRoomId ? (
+          <BreakoutChildBar
+            roomId={room.id}
+            parentRoomId={room.parentRoomId}
+            session={breakouts.session}
+            onMove={moveToRoom}
+          />
+        ) : null}
         {moderator && room.lobbyEnabled ? <LobbyGate roomId={room.id} /> : null}
         {moderator ? <HandQueue /> : null}
         {panel === "chat" ? (
@@ -154,6 +314,15 @@ export function MeetingChrome({
         ) : null}
         {panel === "settings" && moderator ? (
           <RoomSettings room={room} onChange={setRoom} />
+        ) : null}
+        {panel === "breakouts" && moderator && !inChild && !breakouts.childRoom ? (
+          <BreakoutPanel
+            roomId={room.id}
+            session={breakouts.session}
+            loadError={breakouts.loadError}
+            onChanged={breakouts.refresh}
+            onMove={moveToRoom}
+          />
         ) : null}
       </div>
       <footer className="sru-meet-bar">
@@ -215,6 +384,22 @@ export function MeetingChrome({
             >
               Settings
             </button>
+            {!inChild && !breakouts.childRoom ? (
+              <button
+                type="button"
+                className="sru-meet-btn"
+                aria-pressed={panel === "breakouts"}
+                onClick={() =>
+                  setPanel((value) =>
+                    value === "breakouts" ? "none" : "breakouts",
+                  )
+                }
+              >
+                Breakouts
+              </button>
+            ) : null}
+            <RecordButton roomId={room.id} recording={recording} />
+            <StreamButton roomId={room.id} stream={streaming} />
             <ModerationBar roomId={room.id} />
             <button
               type="button"

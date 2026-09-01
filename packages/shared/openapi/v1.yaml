@@ -6,10 +6,9 @@ openapi: "3.0.3"
 info:
   title: SRU-Conf API
   description: >
-    Phase 1 HTTP surface for self-hosted conference rooms, join tokens, and
-    participants. Product handlers land in later tasks. This document is the
-    contract.
-  version: "1.0.0"
+    Phase 1–3 HTTP surface for rooms, tokens, recording, breakouts, API keys, and
+    webhooks. Browser sessions use cookies. Integrations use HMAC headers.
+  version: "3.0.0"
 servers:
   - url: /
     description: Same origin as the Next.js app
@@ -200,6 +199,281 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/v1/rooms/{id}/recording:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+    get:
+      tags: [rooms]
+      summary: Current room recording
+      operationId: getRoomRecording
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Current recording or null
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [rooms]
+      summary: Request composite or track recording
+      operationId: startRoomRecording
+      security:
+        - session: []
+        - hmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartRecordingRequestSchema"
+      responses:
+        "201":
+          description: Recording created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordingSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      tags: [rooms]
+      summary: Stop the active recording
+      operationId: stopRoomRecording
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Recording stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordingSchema"
+  /api/v1/rooms/{id}/streaming:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+    get:
+      tags: [rooms]
+      summary: Current room stream
+      operationId: getRoomStreaming
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Current stream or null
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [rooms]
+      summary: Request an RTMP room-composite stream
+      operationId: startRoomStreaming
+      security:
+        - session: []
+        - hmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartStreamRequestSchema"
+      responses:
+        "201":
+          description: Stream created; may stay pending_consent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreamSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+    patch:
+      tags: [rooms]
+      summary: Add or remove an RTMP destination on the current stream
+      operationId: updateRoomStreaming
+      security:
+        - session: []
+        - hmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStreamRequestSchema"
+      responses:
+        "200":
+          description: Stream destinations updated without restarting egress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreamSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+    delete:
+      tags: [rooms]
+      summary: Stop the active stream
+      operationId: stopRoomStreaming
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Stream stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreamSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /api/v1/rooms/{id}/breakouts:
+    parameters:
+      - $ref: "#/components/parameters/RoomId"
+    get:
+      tags: [rooms]
+      summary: Current breakout session for a parent room
+      operationId: getRoomBreakouts
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Open session or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakoutSessionSchema"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [rooms]
+      summary: Open a breakout round on a parent room
+      operationId: createRoomBreakouts
+      security:
+        - session: []
+        - hmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBreakoutsRequestSchema"
+      responses:
+        "201":
+          description: Breakout session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakoutSessionSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+    delete:
+      tags: [rooms]
+      summary: Close the open breakout session and child rooms
+      operationId: closeRoomBreakouts
+      security:
+        - session: []
+        - hmac: []
+      responses:
+        "200":
+          description: Session closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakoutSessionSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    patch:
+      tags: [rooms]
+      summary: Broadcast, request help, recall, or claim a breakout room
+      operationId: actOnRoomBreakouts
+      security:
+        - session: []
+        - hmac: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BreakoutActionRequestSchema"
+      responses:
+        "200":
+          description: Packet sent to LiveKit rooms, or assignment after a claim
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/BreakoutPacketSchema"
+                  - $ref: "#/components/schemas/BreakoutAssignmentSchema"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+  /api/v1/keys:
+    get:
+      tags: [keys]
+      summary: List API keys
+      operationId: listApiKeys
+      security:
+        - session: []
+      responses:
+        "200":
+          description: Keys for the session user
+    post:
+      tags: [keys]
+      summary: Create an API key
+      operationId: createApiKey
+      security:
+        - session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApiKeyRequestSchema"
+      responses:
+        "201":
+          description: Key created; secret shown once
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateApiKeyResponseSchema"
+  /api/v1/webhooks:
+    get:
+      tags: [webhooks]
+      summary: List webhook endpoints
+      operationId: listWebhookEndpoints
+      security:
+        - session: []
+      responses:
+        "200":
+          description: Endpoints for the session user
+    post:
+      tags: [webhooks]
+      summary: Create a webhook endpoint
+      operationId: createWebhookEndpoint
+      security:
+        - session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWebhookEndpointRequestSchema"
+      responses:
+        "201":
+          description: Endpoint created; signing secret shown once
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateWebhookEndpointResponseSchema"
 components:
   securitySchemes:
     session:
@@ -207,6 +481,11 @@ components:
       in: cookie
       name: session
       description: Session cookie issued after local login.
+    hmac:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: Pair with X-Api-Timestamp and X-Api-Signature HMAC-SHA256.
   parameters:
     RoomId:
       name: id
@@ -343,3 +622,341 @@ components:
               type: string
               minLength: 1
             details: {}
+    OrgRoleSchema:
+      type: string
+      enum: [org_admin, host, participant]
+    LdapLoginRequestSchema:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    RecordingModeSchema:
+      type: string
+      enum: [composite, tracks]
+    RecordingStatusSchema:
+      type: string
+      enum:
+        - pending_consent
+        - starting
+        - active
+        - finishing
+        - finished
+        - failed
+    StartRecordingRequestSchema:
+      type: object
+      properties:
+        mode:
+          $ref: "#/components/schemas/RecordingModeSchema"
+        trackIds:
+          type: array
+          items:
+            type: string
+    RecordingSchema:
+      type: object
+      required: [id, roomId, startedById, mode, status, createdAt]
+      properties:
+        id:
+          type: string
+        roomId:
+          type: string
+        startedById:
+          type: string
+        mode:
+          $ref: "#/components/schemas/RecordingModeSchema"
+        status:
+          $ref: "#/components/schemas/RecordingStatusSchema"
+        createdAt:
+          type: string
+          format: date-time
+    StartStreamRequestSchema:
+      type: object
+      properties:
+        rtmpUrl:
+          type: string
+          minLength: 1
+          maxLength: 2048
+        rtmpUrls:
+          type: array
+          maxItems: 8
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2048
+        hls:
+          type: boolean
+    UpdateStreamRequestSchema:
+      type: object
+      required: [action, rtmpUrl]
+      properties:
+        action:
+          type: string
+          enum: [add, remove]
+        rtmpUrl:
+          type: string
+          minLength: 1
+          maxLength: 2048
+    StreamSchema:
+      type: object
+      required: [id, roomId, startedById, status, createdAt]
+      properties:
+        id:
+          type: string
+        roomId:
+          type: string
+        startedById:
+          type: string
+        status:
+          $ref: "#/components/schemas/RecordingStatusSchema"
+        destinations:
+          type: array
+          items:
+            type: string
+        hlsPrefix:
+          type: string
+          nullable: true
+        hlsUrl:
+          type: string
+          nullable: true
+        consentedUserIds:
+          type: array
+          items:
+            type: string
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        finishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    CreateApiKeyRequestSchema:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+    ApiKeyPublicSchema:
+      type: object
+      required: [id, name, keyId, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        keyId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    CreateApiKeyResponseSchema:
+      type: object
+      required: [id, name, keyId, createdAt, secret]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        keyId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        secret:
+          type: string
+    WebhookEventNameSchema:
+      type: string
+      enum:
+        - room_started
+        - room_finished
+        - participant_joined
+        - participant_left
+        - recording_started
+        - recording_finished
+        - streaming_started
+    CreateWebhookEndpointRequestSchema:
+      type: object
+      required: [url, events]
+      properties:
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookEventNameSchema"
+    WebhookEndpointSchema:
+      type: object
+      required: [id, url, events, active, createdAt]
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookEventNameSchema"
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    CreateWebhookEndpointResponseSchema:
+      type: object
+      required: [id, url, events, active, createdAt, secret]
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookEventNameSchema"
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        secret:
+          type: string
+    AuditLogSchema:
+      type: object
+      required: [id, action, targetType, createdAt]
+      properties:
+        id:
+          type: string
+        action:
+          type: string
+        targetType:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    UserSchema:
+      type: object
+      required: [id, email, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          nullable: true
+        orgRole:
+          $ref: "#/components/schemas/OrgRoleSchema"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    BreakoutAssignmentModeSchema:
+      type: string
+      enum: [auto, manual, self_pick]
+    BreakoutSessionStatusSchema:
+      type: string
+      enum: [open, closed]
+    CreateBreakoutsRequestSchema:
+      type: object
+      required: [mode]
+      properties:
+        mode:
+          $ref: "#/components/schemas/BreakoutAssignmentModeSchema"
+        count:
+          type: integer
+          minimum: 1
+          maximum: 20
+        durationSeconds:
+          type: integer
+          minimum: 60
+          maximum: 14400
+        assignments:
+          type: array
+          maxItems: 200
+          items:
+            type: object
+            required: [userId, groupIndex]
+            properties:
+              userId:
+                type: string
+              groupIndex:
+                type: integer
+                minimum: 0
+                maximum: 19
+    BreakoutAssignmentSchema:
+      type: object
+      required: [userId, childRoomId]
+      properties:
+        userId:
+          type: string
+        childRoomId:
+          type: string
+    BreakoutSessionSchema:
+      type: object
+      required: [id, parentRoomId, status, assignmentMode, endsAt, createdAt]
+      properties:
+        id:
+          type: string
+        parentRoomId:
+          type: string
+        status:
+          $ref: "#/components/schemas/BreakoutSessionStatusSchema"
+        assignmentMode:
+          $ref: "#/components/schemas/BreakoutAssignmentModeSchema"
+        endsAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        childRoomIds:
+          type: array
+          items:
+            type: string
+        assignments:
+          type: array
+          items:
+            $ref: "#/components/schemas/BreakoutAssignmentSchema"
+    BreakoutActionRequestSchema:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [broadcast, help, recall, claim]
+        body:
+          type: string
+          minLength: 1
+          maxLength: 500
+        childRoomId:
+          type: string
+          minLength: 1
+          maxLength: 128
+    BreakoutPacketSchema:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [breakout.broadcast, breakout.help, breakout.recall]
+        sessionId:
+          type: string
+        parentRoomId:
+          type: string
+        childRoomId:
+          type: string
+        userId:
+          type: string
+        senderId:
+          type: string
+        body:
+          type: string

@@ -31,14 +31,22 @@ rtc:
   # https://docs.livekit.io/transport/self-hosting/ports-firewall/
   # https://github.com/livekit/livekit/blob/master/config-sample.yaml
   udp_port: 7882
-  # Local Docker Desktop: advertise the host loopback, not a cloud public IP.
-  # use_external_ip is for cloud VMs (deployment guide). Leave false here.
+  # Advertise the Compose-network address (see docker-compose.yml ipv4_address).
+  # 127.0.0.1 is reachable from the browser for signaling, but coturn inside
+  # Docker cannot relay to loopback — it would hit itself. Host-mapped ICE/UDP
+  # also fails on Docker Desktop, so local clients use TURN/TCP (below).
   use_external_ip: false
-  node_ip: 127.0.0.1
-  # Helpful when the SFU runs in a VM / Docker Desktop NAT (config-sample.yaml).
-  enable_loopback_candidate: true
+  node_ip: 172.19.0.10
+  enable_loopback_candidate: false
+  allow_tcp_fallback: true
   # External coturn on this Compose stack (not LiveKit embedded TURN).
+  # TCP first: Windows Docker UDP publish is unreliable.
   turn_servers:
+    - host: 127.0.0.1
+      port: 3478
+      protocol: tcp
+      username: sru
+      credential: sru_turn_local
     - host: 127.0.0.1
       port: 3478
       protocol: udp

@@ -31,6 +31,9 @@ export default function Home() {
           <a href="/register" className="sru-cta-secondary">
             Register
           </a>
+          <a href="/docs" className="sru-cta-secondary">
+            API docs
+          </a>
         </p>
         <dl className="mt-16 grid max-w-2xl grid-cols-1 gap-8 border-t border-line pt-8 sm:grid-cols-2">
           <div>
