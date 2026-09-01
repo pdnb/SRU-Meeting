@@ -1,0 +1,36 @@
+# Defaults disabled — pass -f coturn-values.yaml and/or -f egress-values.yaml.
+enabled: false
+component: none
+
+image:
+  repository: busybox
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 0
+
+securityContext:
+  capabilities:
+    add: []
+shmSize: ""
+
+config: {}
+
+service:
+  healthPort: 8081
+
+hostNetwork: false
+dnsPolicy: ClusterFirst
+
+auth:
+  username: REPLACE_ME
+  password: REPLACE_ME
+  realm: sru.example
+
+ports:
+  listening: 3478
+  tlsListening: 5349
+  minRelay: 49160
+  maxRelay: 49200
+
+externalIp: REPLACE_ME

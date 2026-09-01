@@ -1,0 +1,33 @@
+# External coturn TURN (not LiveKit embedded TURN).
+# Official image: https://hub.docker.com/r/coturn/coturn
+#
+# Use with the local media chart:
+#   helm template coturn infra/helm/media -f infra/helm/coturn-values.yaml
+
+enabled: true
+component: coturn
+
+image:
+  repository: coturn/coturn
+  tag: "4.17"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# hostNetwork helps advertise a real node IP for TURN on bare metal / VM nodes.
+hostNetwork: true
+dnsPolicy: ClusterFirstWithHostNet
+
+auth:
+  username: REPLACE_ME
+  password: REPLACE_ME
+  realm: sru.example
+
+ports:
+  listening: 3478
+  tlsListening: 5349
+  minRelay: 49160
+  maxRelay: 49200
+
+# Set to the node's public / reachable address in production.
+externalIp: REPLACE_ME

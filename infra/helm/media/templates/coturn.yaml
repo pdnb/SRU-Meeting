@@ -1,0 +1,48 @@
+{{- if and .Values.enabled (eq .Values.component "coturn") }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-coturn
+  labels:
+    app.kubernetes.io/name: media
+    app.kubernetes.io/component: coturn
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: coturn
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: coturn
+    spec:
+      hostNetwork: {{ .Values.hostNetwork }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      containers:
+        - name: coturn
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "-n"
+            - "--log-file=stdout"
+            - "--listening-port={{ .Values.ports.listening }}"
+            - "--tls-listening-port={{ .Values.ports.tlsListening }}"
+            - "--fingerprint"
+            - "--lt-cred-mech"
+            - "--user={{ .Values.auth.username }}:{{ .Values.auth.password }}"
+            - "--realm={{ .Values.auth.realm }}"
+            - "--no-cli"
+            - "--external-ip={{ .Values.externalIp }}"
+            - "--min-port={{ .Values.ports.minRelay }}"
+            - "--max-port={{ .Values.ports.maxRelay }}"
+          ports:
+            - name: turn
+              containerPort: {{ .Values.ports.listening }}
+              protocol: UDP
+            - name: turn-tcp
+              containerPort: {{ .Values.ports.listening }}
+              protocol: TCP
+{{- end }}

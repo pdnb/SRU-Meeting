@@ -1,0 +1,66 @@
+# Overlay for the official LiveKit server Helm chart.
+# Install (example):
+#   helm repo add livekit https://helm.livekit.io
+#   helm upgrade --install livekit livekit/livekit-server \
+#     -f infra/helm/livekit-values.yaml
+#
+# Official chart: https://github.com/livekit/livekit-helm
+# Deployment notes: https://docs.livekit.io/transport/self-hosting/deployment/
+# Ports: https://docs.livekit.io/transport/self-hosting/ports-firewall/
+#
+# Constraint: a room pins to one SFU node. With hostNetwork, schedule at most
+# one livekit-server pod per node (anti-affinity below).
+
+replicaCount: 1
+
+# Bind RTC UDP/TCP on the node network (required for WebRTC media ranges).
+podHostNetwork: true
+
+# One SFU pod per node — hostNetwork cannot share UDP 50000–60000 on a node.
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+                - livekit-server
+        topologyKey: kubernetes.io/hostname
+
+image:
+  repository: livekit/livekit-server
+  tag: v1.13.6
+  pullPolicy: IfNotPresent
+
+livekit:
+  port: 7880
+  log_level: info
+  # Redis is required for multi-node / room state. Point at the Task 52 Redis Service.
+  redis:
+    address: sru-sru-conf-redis:6379
+  rtc:
+    tcp_port: 7881
+    port_range_start: 50000
+    port_range_end: 60000
+    use_external_ip: true
+  # Prefer external coturn (see infra/helm/coturn-values.yaml). Embedded TURN stays off.
+  turn:
+    enabled: false
+  # Do not commit production keys. Load from a Secret.
+  keys: {}
+
+storeKeysInSecret:
+  enabled: true
+  existingSecret: sru-livekit-keys
+
+loadBalancer:
+  type: disable
+
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "1Gi"
+  limits:
+    cpu: "4000m"
+    memory: "4Gi"

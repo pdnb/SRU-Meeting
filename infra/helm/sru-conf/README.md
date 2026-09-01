@@ -4,7 +4,7 @@ Kubernetes chart for the **web** app plus **Postgres**, **Redis**, and **MinIO**
 
 **Docker Compose is still the local / small-org default.** Use `infra/docker-compose.yml` for day-to-day development. This chart is the production-oriented path; it does not replace Compose.
 
-LiveKit, coturn, and egress are **not** packaged here (Task 53).
+LiveKit SFU, coturn, and egress values live under `infra/helm/` (see `infra/README.md`). This chart stays app + data stores only.
 
 ## Render (no cluster required)
 

@@ -1,0 +1,46 @@
+# Separate LiveKit Egress worker — never colocate with the SFU.
+# Official: https://docs.livekit.io/transport/self-hosting/egress/
+#
+# Use with the local media chart:
+#   helm template egress infra/helm/media -f infra/helm/egress-values.yaml
+# Or install:
+#   helm upgrade --install sru-egress infra/helm/media -f infra/helm/egress-values.yaml
+
+enabled: true
+component: egress
+
+image:
+  repository: livekit/egress
+  tag: v1.10.0
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Chrome sandbox needs SYS_ADMIN; RoomComposite needs extra shm.
+# https://docs.livekit.io/transport/self-hosting/egress/
+securityContext:
+  capabilities:
+    add:
+      - SYS_ADMIN
+shmSize: 1Gi
+
+# Config placeholders only — inject real secrets via Secret / sealed-secret.
+config:
+  log_level: info
+  api_key: REPLACE_ME
+  api_secret: REPLACE_ME
+  ws_url: ws://livekit-livekit-server:7880
+  insecure: true
+  health_port: 8081
+  redis:
+    address: sru-sru-conf-redis:6379
+  s3:
+    access_key: REPLACE_ME
+    secret: REPLACE_ME
+    region: us-east-1
+    endpoint: http://sru-sru-conf-minio:9000
+    bucket: sru-chat
+    force_path_style: true
+
+service:
+  healthPort: 8081

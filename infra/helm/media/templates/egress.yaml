@@ -1,0 +1,82 @@
+{{- if and .Values.enabled (eq .Values.component "egress") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-egress-config
+  labels:
+    app.kubernetes.io/name: media
+    app.kubernetes.io/component: egress
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  egress.yaml: |
+    log_level: {{ .Values.config.log_level }}
+    api_key: {{ .Values.config.api_key }}
+    api_secret: {{ .Values.config.api_secret }}
+    ws_url: {{ .Values.config.ws_url }}
+    insecure: {{ .Values.config.insecure }}
+    health_port: {{ .Values.config.health_port }}
+    redis:
+      address: {{ .Values.config.redis.address }}
+    s3:
+      access_key: {{ .Values.config.s3.access_key }}
+      secret: {{ .Values.config.s3.secret }}
+      region: {{ .Values.config.s3.region }}
+      endpoint: {{ .Values.config.s3.endpoint }}
+      bucket: {{ .Values.config.s3.bucket }}
+      force_path_style: {{ .Values.config.s3.force_path_style }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-egress
+  labels:
+    app.kubernetes.io/name: media
+    app.kubernetes.io/component: egress
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: egress
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: egress
+    spec:
+      containers:
+        - name: egress
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: EGRESS_CONFIG_FILE
+              value: /etc/egress.yaml
+          ports:
+            - name: health
+              containerPort: {{ .Values.service.healthPort }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/egress.yaml
+              subPath: egress.yaml
+            - name: dshm
+              mountPath: /dev/shm
+          readinessProbe:
+            httpGet:
+              path: /
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          securityContext:
+            capabilities:
+              add:
+                {{- toYaml .Values.securityContext.capabilities.add | nindent 16 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-egress-config
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ .Values.shmSize }}
+{{- end }}

@@ -170,14 +170,31 @@ When a room has the lobby enabled:
 
 ## Kubernetes (Helm)
 
-Chart: `infra/helm/sru-conf` (web, Postgres, Redis, MinIO). Compose remains the documented local default — do not treat Helm as required for small-org installs.
+**Compose remains the local / small-org default.** Helm is optional for production-style clusters.
+
+| Path | Role |
+|------|------|
+| `infra/helm/sru-conf` | Web, Postgres, Redis, MinIO |
+| `infra/helm/livekit-values.yaml` | Overlay for official `livekit/livekit-server` (Redis + `podHostNetwork`, one SFU pod per node) |
+| `infra/helm/media` + `egress-values.yaml` / `coturn-values.yaml` | Egress and coturn as **separate** workloads from the SFU |
+| `infra/scripts/save-images.sh` | Air-gap image list (dry-run by default) |
 
 ```powershell
 helm template sru infra/helm/sru-conf
+helm template egress infra/helm/media -f infra/helm/egress-values.yaml
+helm template coturn infra/helm/media -f infra/helm/coturn-values.yaml
 node infra/helm/sru-conf/check.mjs
+node infra/scripts/check-task53.mjs
+bash infra/scripts/save-images.sh
 ```
 
-See `infra/helm/sru-conf/README.md`. LiveKit / coturn / egress Helm values land in Task 53.
+LiveKit SFU install example (after adding the LiveKit Helm repo):
+
+```powershell
+helm upgrade --install livekit livekit/livekit-server -f infra/helm/livekit-values.yaml
+```
+
+A room pins to one SFU node; with `hostNetwork`, schedule at most one `livekit-server` pod per node.
 
 ## Troubleshooting
 

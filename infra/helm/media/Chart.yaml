@@ -1,0 +1,7 @@
+apiVersion: v2
+name: media
+description: Coturn TURN and LiveKit Egress — separate from the LiveKit SFU (see livekit-values.yaml).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+# SFU values live in ../livekit-values.yaml for the official livekit-server chart.

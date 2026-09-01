@@ -138,7 +138,7 @@ Saved 2026-08-31 as git tag `checkpoint/phase-1-mvp`. Two-browser A/V and passwo
 - [x] Task 50: Embed package + iframe page (E3.6)
 - [x] Task 51: postMessage handshake + origin allowlist (E3.6)
 - [x] Task 52: Helm chart for web/Postgres/Redis/MinIO (E3.4)
-- [ ] Task 53: LiveKit + coturn + egress Helm + air-gap (E3.4)
+- [x] Task 53: LiveKit + coturn + egress Helm + air-gap (E3.4)
 - [ ] Task 54: Load-test runner against Compose (E3.5)
 - [ ] Task 55: 500-concurrent + TURN/4G runbook (E3.5)
 - [ ] Task 56: Expo app joins with a minted token (E3.3)
@@ -1482,14 +1482,14 @@ Split on 2026-08-31. Child breakouts are real `Room` rows with `parentRoomId`, g
 
 **Acceptance criteria:**
 
-- [ ] LiveKit values set Redis and `hostNetwork`
-- [ ] Egress is a separate workload from the SFU
-- [ ] Image-save script lists LiveKit, egress, coturn, web, Postgres, Redis, MinIO
+- [x] LiveKit values set Redis and `hostNetwork`
+- [x] Egress is a separate workload from the SFU
+- [x] Image-save script lists LiveKit, egress, coturn, web, Postgres, Redis, MinIO
 
 **Verification:**
 
-- [ ] Manual check: values files render; script is dry-run safe
-- [ ] Build succeeds: `pnpm --filter web typecheck`
+- [x] Manual check: values files render; script is dry-run safe
+- [x] Build succeeds: `pnpm --filter web typecheck`
 
 **Dependencies:** Task 52
 
