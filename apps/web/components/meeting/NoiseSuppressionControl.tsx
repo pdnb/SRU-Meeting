@@ -3,17 +3,17 @@
 import { useKrispNoiseFilter } from "@livekit/components-react/krisp";
 import { useEffect, useRef } from "react";
 import {
-  isNoiseSuppressionSupported,
   readNoiseSuppressionPreference,
   writeNoiseSuppressionPreference,
-} from "@/lib/livekit/track-processors";
+} from "@/lib/livekit/track-preferences";
+import { useTrackProcessorSupport } from "@/components/meeting/useTrackProcessorSupport";
 
 export function NoiseSuppressionControl({
   showUnsupportedNotice = false,
 }: {
   showUnsupportedNotice?: boolean;
 }) {
-  const supported = isNoiseSuppressionSupported();
+  const { noiseSuppression: supported } = useTrackProcessorSupport();
   const krisp = useKrispNoiseFilter();
   const appliedPreference = useRef(false);
 

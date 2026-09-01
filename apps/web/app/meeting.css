@@ -8,19 +8,19 @@
   color: var(--sru-meet-ink);
 }
 
-.sru-meet-stage {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  padding: 0.75rem;
-  gap: 0.75rem;
+.sru-meet :focus-visible {
+  outline: 2px solid var(--sru-meet-speaker);
+  outline-offset: 2px;
 }
 
-.sru-meet-grid {
-  display: grid;
-  gap: 0.5rem;
-  height: 100%;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+.sru-meet .sru-input {
+  background: var(--sru-meet-surface-raised);
+  color: var(--sru-meet-ink);
+  border-color: var(--sru-meet-line);
+}
+
+.sru-meet .sru-label {
+  color: var(--sru-meet-ink);
 }
 
 .sru-meet-speaker {
@@ -28,6 +28,8 @@
   grid-template-rows: 1fr auto;
   gap: 0.5rem;
   height: 100%;
+  min-height: 0;
+  padding: 0.5rem;
 }
 
 .sru-meet-speaker-strip {
@@ -47,6 +49,8 @@
   grid-template-columns: 1fr 12rem;
   gap: 0.5rem;
   height: 100%;
+  min-height: 0;
+  padding: 0.5rem;
 }
 
 .sru-meet-sidebar-list {
@@ -59,9 +63,10 @@
 .sru-tile {
   position: relative;
   overflow: hidden;
+  height: 100%;
+  min-height: 8rem;
   border-radius: var(--sru-radius);
   background: var(--sru-meet-surface);
-  min-height: 8rem;
 }
 
 .sru-tile video {
@@ -74,26 +79,21 @@
   position: absolute;
   left: 0.5rem;
   bottom: 0.5rem;
+  display: inline-flex;
+  max-width: calc(100% - 1rem);
+  align-items: center;
+  gap: 0.25rem;
   padding: 0.15rem 0.4rem;
+  overflow: hidden;
   background: rgb(0 0 0 / 0.55);
   border-radius: var(--sru-radius);
   font-size: var(--sru-text-caption);
+  white-space: nowrap;
 }
 
 .sru-tile-speaking {
-  outline: 2px solid var(--sru-accent);
+  outline: 2px solid var(--sru-meet-speaker);
   outline-offset: -2px;
-}
-
-.sru-meet-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border-top: 1px solid var(--sru-meet-line);
-  background: var(--sru-meet-surface);
 }
 
 .sru-meet-btn {
@@ -113,17 +113,18 @@
 }
 
 .sru-meet-btn[aria-pressed="true"] {
-  background: var(--sru-accent);
-  border-color: var(--sru-accent);
-  color: var(--sru-accent-fg);
+  background: var(--sru-meet-speaker);
+  border-color: var(--sru-meet-speaker);
+  color: #041016;
 }
 
 .sru-meet-panel {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
+  z-index: 10;
   width: min(22rem, calc(100vw - 1.5rem));
-  max-height: calc(100% - 5.5rem);
+  max-height: calc(100% - 6.5rem);
   display: flex;
   flex-direction: column;
   background: var(--sru-meet-surface);
@@ -131,6 +132,10 @@
   border-radius: var(--sru-radius-lg);
   overflow: hidden;
   box-shadow: var(--sru-shadow-md);
+}
+
+.sru-meet-panel-wide {
+  width: min(40rem, calc(100% - 1.5rem));
 }
 
 .sru-meet-panel h2 {
@@ -155,7 +160,7 @@
 
 .sru-breakout-banner {
   position: absolute;
-  bottom: 0.75rem;
+  bottom: 5.5rem;
   left: 0.75rem;
   z-index: 5;
   display: flex;
@@ -193,11 +198,6 @@
     grid-template-columns: 1fr;
   }
 
-  .sru-meet-bar {
-    justify-content: flex-start;
-    overflow-x: auto;
-  }
-
   .sru-meet-panel {
     inset: 0;
     top: 0;
@@ -221,10 +221,18 @@
 }
 
 .sru-reaction {
-  position: absolute;
+  position: fixed;
   left: 50%;
-  top: 30%;
+  top: 38%;
+  z-index: 25;
   transform: translateX(-50%);
   font-size: 2.5rem;
   pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sru-meet .sru-tile,
+  .sru-meet [class*="grid"] {
+    transition: none;
+  }
 }

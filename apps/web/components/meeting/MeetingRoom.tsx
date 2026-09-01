@@ -13,6 +13,7 @@ import {
   readBrowserNetworkHints,
   roomOptionsForNetwork,
 } from "@/lib/livekit/connect-options";
+import { meetingInter } from "@/lib/meeting-font";
 
 export function MeetingRoom({
   room,
@@ -57,7 +58,7 @@ export function MeetingRoom({
       video={video}
       connectOptions={connectOptionsForLiveKitUrl(url)}
       options={options}
-      className="h-full"
+      className={`h-full ${meetingInter.className}`}
     >
       {e2eeEnabled && keyProvider ? (
         <E2eeController

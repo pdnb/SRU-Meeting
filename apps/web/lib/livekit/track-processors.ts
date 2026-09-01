@@ -9,25 +9,31 @@ import {
   type BackgroundProcessorWrapper,
 } from "@livekit/track-processors";
 import type { LocalAudioTrack, LocalVideoTrack } from "livekit-client";
+import {
+  BACKGROUND_PRESETS,
+  DEFAULT_BLUR_RADIUS,
+  presetImageUrl,
+  virtualBackgroundBlurAvailable as virtualBackgroundBlurAvailableWhenSupported,
+  type VirtualBackgroundChoice,
+} from "@/lib/livekit/track-preferences";
 
-export const NOISE_SUPPRESSION_STORAGE_KEY = "sru-noise-suppression";
-
-export function readNoiseSuppressionPreference(): boolean {
-  if (typeof window === "undefined") {
-    return false;
-  }
-  return window.localStorage.getItem(NOISE_SUPPRESSION_STORAGE_KEY) === "1";
-}
-
-export function writeNoiseSuppressionPreference(enabled: boolean): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  window.localStorage.setItem(
-    NOISE_SUPPRESSION_STORAGE_KEY,
-    enabled ? "1" : "0",
-  );
-}
+export {
+  BACKGROUND_PRESETS,
+  DEFAULT_BLUR_RADIUS,
+  DEFAULT_VIRTUAL_BACKGROUND_CHOICE,
+  NOISE_SUPPRESSION_STORAGE_KEY,
+  VIRTUAL_BACKGROUND_STORAGE_KEY,
+  parseVirtualBackgroundChoice,
+  presetImageUrl,
+  readNoiseSuppressionPreference,
+  readVirtualBackgroundPreference,
+  shouldShowBackgroundPerformanceHint,
+  virtualBackgroundChoiceLabel,
+  writeNoiseSuppressionPreference,
+  writeVirtualBackgroundPreference,
+  type VirtualBackgroundChoice,
+  type VirtualBackgroundPresetId,
+} from "@/lib/livekit/track-preferences";
 
 export function isNoiseSuppressionSupported(): boolean {
   try {
@@ -66,67 +72,6 @@ export async function removeNoiseSuppressionFromTrack(
   }
 }
 
-export const VIRTUAL_BACKGROUND_STORAGE_KEY = "sru-virtual-background";
-export const DEFAULT_BLUR_RADIUS = 10;
-
-export const BACKGROUND_PRESETS = [
-  { id: "office", label: "Office", path: "/backgrounds/office.jpg" },
-  { id: "nature", label: "Nature", path: "/backgrounds/nature.jpg" },
-  { id: "abstract", label: "Abstract", path: "/backgrounds/abstract.jpg" },
-] as const;
-
-export type VirtualBackgroundPresetId =
-  (typeof BACKGROUND_PRESETS)[number]["id"];
-
-export type VirtualBackgroundChoice =
-  | { type: "none" }
-  | { type: "blur" }
-  | { type: "preset"; id: VirtualBackgroundPresetId };
-
-export function parseVirtualBackgroundChoice(
-  raw: string | null,
-): VirtualBackgroundChoice {
-  if (!raw) {
-    return { type: "none" };
-  }
-  try {
-    const parsed = JSON.parse(raw) as VirtualBackgroundChoice;
-    if (parsed.type === "blur") {
-      return { type: "blur" };
-    }
-    if (
-      parsed.type === "preset" &&
-      BACKGROUND_PRESETS.some((preset) => preset.id === parsed.id)
-    ) {
-      return parsed;
-    }
-  } catch {
-    // ignore invalid stored values
-  }
-  return { type: "none" };
-}
-
-export function readVirtualBackgroundPreference(): VirtualBackgroundChoice {
-  if (typeof window === "undefined") {
-    return { type: "none" };
-  }
-  return parseVirtualBackgroundChoice(
-    window.localStorage.getItem(VIRTUAL_BACKGROUND_STORAGE_KEY),
-  );
-}
-
-export function writeVirtualBackgroundPreference(
-  choice: VirtualBackgroundChoice,
-): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  window.localStorage.setItem(
-    VIRTUAL_BACKGROUND_STORAGE_KEY,
-    JSON.stringify(choice),
-  );
-}
-
 export function isVirtualBackgroundSupported(): boolean {
   try {
     return supportsBackgroundProcessors();
@@ -135,50 +80,9 @@ export function isVirtualBackgroundSupported(): boolean {
   }
 }
 
-export function isLowEndDevice(): boolean {
-  if (typeof navigator === "undefined") {
-    return false;
-  }
-  return (navigator.hardwareConcurrency ?? 8) <= 4;
-}
-
-export function isLikelyMobileDevice(): boolean {
-  if (typeof navigator === "undefined") {
-    return false;
-  }
-  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-}
-
-/** Blur is disabled on mobile to reduce CPU and battery drain. */
 export function virtualBackgroundBlurAvailable(): boolean {
-  return isVirtualBackgroundSupported() && !isLikelyMobileDevice();
-}
-
-export function shouldShowBackgroundPerformanceHint(
-  choice: VirtualBackgroundChoice,
-): boolean {
-  return choice.type !== "none" && isLowEndDevice();
-}
-
-export function presetImageUrl(path: string): string {
-  if (typeof window === "undefined") {
-    return path;
-  }
-  return new URL(path, window.location.origin).href;
-}
-
-export function virtualBackgroundChoiceLabel(
-  choice: VirtualBackgroundChoice,
-): string {
-  if (choice.type === "none") {
-    return "None";
-  }
-  if (choice.type === "blur") {
-    return "Blur";
-  }
-  return (
-    BACKGROUND_PRESETS.find((preset) => preset.id === choice.id)?.label ??
-    "Preset"
+  return virtualBackgroundBlurAvailableWhenSupported(
+    isVirtualBackgroundSupported(),
   );
 }
 

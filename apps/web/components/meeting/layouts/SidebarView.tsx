@@ -1,13 +1,13 @@
 "use client";
 
-import type { TrackReference } from "@livekit/components-react";
+import type { TrackReferenceOrPlaceholder } from "@livekit/components-react";
 import { VideoTile } from "@/components/meeting/VideoTile";
 
 export function SidebarView({
   tiles,
   mainId,
 }: {
-  tiles: { id: string; label: string; trackRef?: TrackReference }[];
+  tiles: { id: string; label: string; trackRef?: TrackReferenceOrPlaceholder }[];
   mainId?: string;
 }) {
   const main = tiles.find((tile) => tile.id === mainId) ?? tiles[0];

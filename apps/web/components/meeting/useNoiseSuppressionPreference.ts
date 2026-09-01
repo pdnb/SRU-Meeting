@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import {
   readNoiseSuppressionPreference,
   writeNoiseSuppressionPreference,
-} from "@/lib/livekit/track-processors";
+} from "@/lib/livekit/track-preferences";
 
 const NOISE_PREF_EVENT = "sru-noise-pref-change";
 

@@ -4,17 +4,14 @@ import { useLocalParticipant } from "@livekit/components-react";
 import { LocalVideoTrack, Track } from "livekit-client";
 import { useEffect } from "react";
 import { useVirtualBackgroundPreference } from "@/components/meeting/useVirtualBackgroundPreference";
-import {
-  applyVirtualBackgroundToTrack,
-  isVirtualBackgroundSupported,
-} from "@/lib/livekit/track-processors";
+import { useTrackProcessorSupport } from "@/components/meeting/useTrackProcessorSupport";
 
 /** Keeps the local camera background effect in sync with stored preference. */
 export function LocalVideoBackgroundSync() {
   const { localParticipant, cameraTrack, isCameraEnabled } =
     useLocalParticipant();
   const [choice] = useVirtualBackgroundPreference();
-  const supported = isVirtualBackgroundSupported();
+  const { virtualBackground: supported } = useTrackProcessorSupport();
 
   useEffect(() => {
     if (!supported || !isCameraEnabled) {
@@ -28,6 +25,9 @@ export function LocalVideoBackgroundSync() {
     let cancelled = false;
     void (async () => {
       try {
+        const { applyVirtualBackgroundToTrack } = await import(
+          "@/lib/livekit/track-processors"
+        );
         await applyVirtualBackgroundToTrack(track, choice);
       } catch {
         if (!cancelled) {

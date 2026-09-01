@@ -2,13 +2,13 @@
 
 import {
   BACKGROUND_PRESETS,
-  isVirtualBackgroundSupported,
   shouldShowBackgroundPerformanceHint,
   virtualBackgroundBlurAvailable,
   virtualBackgroundChoiceLabel,
   type VirtualBackgroundChoice,
   type VirtualBackgroundPresetId,
-} from "@/lib/livekit/track-processors";
+} from "@/lib/livekit/track-preferences";
+import { useTrackProcessorSupport } from "@/components/meeting/useTrackProcessorSupport";
 import { useVirtualBackgroundPreference } from "@/components/meeting/useVirtualBackgroundPreference";
 
 function choiceFromSelectValue(value: string): VirtualBackgroundChoice {
@@ -41,8 +41,8 @@ export function VirtualBackgroundControl({
   showUnsupportedNotice?: boolean;
   compact?: boolean;
 }) {
-  const supported = isVirtualBackgroundSupported();
-  const blurAvailable = virtualBackgroundBlurAvailable();
+  const { virtualBackground: supported } = useTrackProcessorSupport();
+  const blurAvailable = virtualBackgroundBlurAvailable(supported);
   const [choice, setChoice] = useVirtualBackgroundPreference();
 
   if (!supported) {

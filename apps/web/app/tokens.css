@@ -31,12 +31,13 @@
   --sru-danger: #9f1239;
   --sru-danger-fg: #fafafa;
   --sru-danger-soft: #ffe4e6;
-  --sru-meet-canvas: #0c0c0e;
-  --sru-meet-surface: #18181b;
-  --sru-meet-surface-raised: #27272a;
-  --sru-meet-line: #3f3f46;
+  --sru-meet-canvas: #1b1b1b;
+  --sru-meet-surface: #232323;
+  --sru-meet-surface-raised: #2c2c2c;
+  --sru-meet-line: #3a3a3a;
   --sru-meet-ink: #f4f4f5;
   --sru-meet-muted: #a1a1aa;
+  --sru-meet-speaker: #00bceb;
   --sru-space-1: 0.25rem;
   --sru-space-2: 0.5rem;
   --sru-space-3: 0.75rem;
@@ -119,6 +120,13 @@
   --spacing-nav: var(--sru-nav-height);
   --radius-sru: var(--sru-radius);
   --radius-sru-lg: var(--sru-radius-lg);
+  --color-meet-canvas: var(--sru-meet-canvas);
+  --color-meet-panel: var(--sru-meet-surface);
+  --color-meet-raised: var(--sru-meet-surface-raised);
+  --color-meet-line: var(--sru-meet-line);
+  --color-meet-ink: var(--sru-meet-ink);
+  --color-meet-muted: var(--sru-meet-muted);
+  --color-meet-speaker: var(--sru-meet-speaker);
 }
 
 @media (prefers-reduced-motion: reduce) {

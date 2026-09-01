@@ -10,10 +10,12 @@ export function ChatPanel({
   roomId,
   userId,
   allowChat,
+  embedded = false,
 }: {
   roomId: string;
   userId: string;
   allowChat: boolean;
+  embedded?: boolean;
 }) {
   const room = useRoomContext();
   const participants = useParticipants();
@@ -130,14 +132,23 @@ export function ChatPanel({
   }
 
   return (
-    <aside className="sru-meet-panel" aria-label="Chat">
-      <h2>{recipientId ? "Private chat" : "Room chat"}</h2>
+    <aside
+      className={
+        embedded
+          ? "flex h-full min-h-0 flex-col bg-meet-panel text-meet-ink"
+          : "sru-meet-panel"
+      }
+      aria-label="Chat"
+    >
+      {embedded ? null : (
+        <h2>{recipientId ? "Private chat" : "Room chat"}</h2>
+      )}
       <label className="sr-only" htmlFor="chat-to">
         Send to
       </label>
       <select
         id="chat-to"
-        className="sru-input mx-3 mt-3"
+        className="sru-input mx-3 mt-3 bg-meet-raised text-meet-ink border-meet-line"
         value={recipientId}
         onChange={(event) => setRecipientId(event.target.value)}
       >
@@ -150,15 +161,15 @@ export function ChatPanel({
             </option>
           ))}
       </select>
-      <ul className="m-0 min-h-40 flex-1 list-none overflow-y-auto p-3">
+      <ul className="m-0 min-h-0 flex-1 list-none overflow-y-auto p-3">
         {messages.length === 0 ? (
-          <li className="text-zinc-400">No messages yet.</li>
+          <li className="text-meet-muted">No messages yet.</li>
         ) : (
           messages.map((message) => {
             const mentions = findMentionedNames(message.body, names);
             return (
               <li key={message.id} className="mb-3">
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-meet-muted">
                   {message.recipientId ? "DM · " : ""}
                   {message.senderId}
                 </p>
@@ -200,7 +211,7 @@ export function ChatPanel({
         </p>
       ) : null}
       <form
-        className="flex flex-col gap-2 border-t border-zinc-700 p-3"
+        className="flex flex-col gap-2 border-t border-meet-line p-3"
         onSubmit={(event) => {
           event.preventDefault();
           void send();
@@ -213,7 +224,7 @@ export function ChatPanel({
           id="chat-body"
           value={body}
           onChange={(event) => setBody(event.target.value)}
-          className="sru-input min-h-16 py-2"
+          className="sru-input min-h-16 bg-meet-raised py-2 text-meet-ink border-meet-line"
           required
         />
         <div className="flex flex-wrap gap-2">

@@ -10,7 +10,7 @@ export function LayoutSwitcher({
   onChange: (layout: MeetingLayout) => void;
 }) {
   return (
-    <div role="group" aria-label="Layout">
+    <div role="group" aria-label="Layout" className="flex flex-wrap gap-1">
       {(["grid", "speaker", "sidebar"] as const).map((value) => (
         <button
           key={value}

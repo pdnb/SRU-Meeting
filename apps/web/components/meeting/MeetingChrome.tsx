@@ -20,34 +20,25 @@ import {
   useOpenBreakout,
 } from "@/components/meeting/BreakoutPanel";
 import { moveToPreparedMeeting } from "@/lib/breakout-move";
-import { ChatPanel } from "@/components/meeting/ChatPanel";
 import { PollPanel } from "@/components/meeting/PollPanel";
 import { QaPanel } from "@/components/meeting/QaPanel";
 import { WhiteboardPanel } from "@/components/meeting/WhiteboardPanel";
 import { HandQueue } from "@/components/meeting/HandQueue";
-import {
-  LayoutSwitcher,
-  type MeetingLayout,
-} from "@/components/meeting/LayoutSwitcher";
+import { type MeetingLayout } from "@/components/meeting/LayoutSwitcher";
 import { LobbyGate } from "@/components/meeting/LobbyGate";
 import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
-import { ModerationBar } from "@/components/meeting/ModerationBar";
-import { ParticipantList } from "@/components/meeting/ParticipantList";
-import { RaiseHand } from "@/components/meeting/RaiseHand";
 import { Reactions } from "@/components/meeting/Reactions";
 import { RoomSettings } from "@/components/meeting/RoomSettings";
-import { RecordButton } from "@/components/meeting/RecordButton";
 import { RecordingConsent } from "@/components/meeting/RecordingConsent";
 import { StreamBanner } from "@/components/meeting/StreamBanner";
-import { StreamButton } from "@/components/meeting/StreamButton";
-import { ScreenShareButton } from "@/components/meeting/ScreenShareButton";
 import { LocalVideoBackgroundSync } from "@/components/meeting/LocalVideoBackgroundSync";
 import { QosReporter } from "@/components/meeting/QosReporter";
-import { NoiseSuppressionControl } from "@/components/meeting/NoiseSuppressionControl";
-import { VirtualBackgroundControl } from "@/components/meeting/VirtualBackgroundControl";
 import { GridView } from "@/components/meeting/layouts/GridView";
 import { SidebarView } from "@/components/meeting/layouts/SidebarView";
 import { SpeakerView } from "@/components/meeting/layouts/SpeakerView";
+import { MeetingControlBar, type MeetingOverlayPanel } from "@/components/meeting/chrome/MeetingControlBar";
+import { MeetingSidebar } from "@/components/meeting/chrome/MeetingSidebar";
+import { MeetingTopBar } from "@/components/meeting/chrome/MeetingTopBar";
 
 export function MeetingChrome({
   room: initialRoom,
@@ -73,9 +64,9 @@ export function MeetingChrome({
 
   const [layout, setLayout] = useState<MeetingLayout>("grid");
   const [room, setRoom] = useState(initialRoom);
-  const [panel, setPanel] = useState<
-    "none" | "chat" | "people" | "settings" | "breakouts" | "polls" | "qa" | "whiteboard"
-  >("none");
+  const [panel, setPanel] = useState<MeetingOverlayPanel>("none");
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [spotlight, setSpotlight] = useState<string | undefined>();
   const [ended, setEnded] = useState(Boolean(initialRoom.finishedAt));
   const [recording, setRecording] = useState<{
@@ -238,7 +229,7 @@ export function MeetingChrome({
     const cameras = cameraTracks.map((trackRef) => ({
       id: trackRef.participant.identity,
       label: trackRef.participant.name || trackRef.participant.identity,
-      trackRef: trackRef.publication ? trackRef : undefined,
+      trackRef,
     }));
     return [...screens, ...cameras];
   }, [cameraTracks, screenTracks]);
@@ -273,227 +264,129 @@ export function MeetingChrome({
     );
   }
 
+  const recordingActive = Boolean(
+    recording &&
+      (recording.status === "pending_consent" ||
+        recording.status === "starting" ||
+        recording.status === "active"),
+  );
+  const canOpenBreakouts =
+    moderator && !inChild && !breakouts.childRoom && !e2eeEnabled;
+  const sidebarOpen = desktopSidebarOpen || mobileSidebarOpen;
+
+  function toggleSidebar() {
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      setDesktopSidebarOpen((value) => !value);
+    } else {
+      setMobileSidebarOpen((value) => !value);
+    }
+  }
+
   return (
     <div className="sru-meet">
       <LocalVideoBackgroundSync />
       <QosReporter roomId={room.id} />
       <RoomAudioRenderer />
+      <MeetingTopBar
+        title={room.name}
+        participantCount={participants.length}
+        e2eeEnabled={e2eeEnabled}
+        recordingActive={recordingActive}
+        locked={room.locked}
+        layout={layout}
+        onLayoutChange={setLayout}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={toggleSidebar}
+      />
       {connection === ConnectionState.Reconnecting ? (
-        <p role="status" className="px-page py-2 text-center">
+        <p role="status" className="bg-meet-panel px-3 py-1 text-center text-sm text-meet-muted">
           Reconnecting…
         </p>
       ) : null}
-      {e2eeEnabled ? (
-        <p
-          role="status"
-          className="border-b border-emerald-800/60 bg-emerald-950/50 px-page py-2 text-center text-sm text-emerald-200"
-        >
-          End-to-end encryption is active for camera and microphone. Recording,
-          streaming, and breakouts are unavailable.
-        </p>
-      ) : null}
-      <div className="sru-meet-stage relative">
-        {layout === "grid" ? <GridView tiles={tiles} /> : null}
-        {layout === "speaker" ? (
-          <SpeakerView tiles={tiles} mainId={mainId} />
-        ) : null}
-        {layout === "sidebar" ? (
-          <SidebarView tiles={tiles} mainId={mainId} />
-        ) : null}
-        {recording ? (
-          <RecordingConsent
-            roomId={room.id}
+      <div className="relative flex min-h-0 flex-1">
+        <div className="relative min-h-0 min-w-0 flex-1 pb-20">
+          {layout === "grid" ? <GridView tiles={tiles} /> : null}
+          {layout === "speaker" ? (
+            <SpeakerView tiles={tiles} mainId={mainId} />
+          ) : null}
+          {layout === "sidebar" ? (
+            <SidebarView tiles={tiles} mainId={mainId} />
+          ) : null}
+          <Reactions />
+          {recording ? (
+            <RecordingConsent
+              roomId={room.id}
+              userId={userId}
+              recording={recording}
+            />
+          ) : null}
+          {streaming ? (
+            <StreamBanner
+              roomId={room.id}
+              userId={userId}
+              stream={streaming}
+            />
+          ) : null}
+          {!moderator && !inChild && !e2eeEnabled ? (
+            <BreakoutJoinBanner
+              session={breakouts.session}
+              userId={userId}
+              maxParticipants={room.maxParticipants ?? 25}
+              onMove={moveToRoom}
+            />
+          ) : null}
+          {moderator && !inChild ? (
+            <BreakoutHelpNotice session={breakouts.session} />
+          ) : null}
+          {inChild && room.parentRoomId ? (
+            <BreakoutChildBar
+              roomId={room.id}
+              parentRoomId={room.parentRoomId}
+              session={breakouts.session}
+              onMove={moveToRoom}
+            />
+          ) : null}
+          {moderator && room.lobbyEnabled ? <LobbyGate roomId={room.id} /> : null}
+          {moderator ? <HandQueue /> : null}
+          {panel === "polls" ? (
+            <PollPanel roomId={room.id} userId={userId} moderator={moderator} />
+          ) : null}
+          {panel === "qa" ? (
+            <QaPanel roomId={room.id} userId={userId} moderator={moderator} />
+          ) : null}
+          {panel === "whiteboard" ? (
+            <WhiteboardPanel roomId={room.id} userId={userId} host={role === "host"} />
+          ) : null}
+          {panel === "settings" && moderator ? (
+            <RoomSettings room={room} onChange={setRoom} />
+          ) : null}
+          {panel === "breakouts" && canOpenBreakouts ? (
+            <BreakoutPanel
+              roomId={room.id}
+              session={breakouts.session}
+              loadError={breakouts.loadError}
+              onChanged={breakouts.refresh}
+              onMove={moveToRoom}
+            />
+          ) : null}
+          <MeetingControlBar
+            room={room}
             userId={userId}
+            moderator={moderator}
+            e2eeEnabled={e2eeEnabled}
+            canOpenBreakouts={canOpenBreakouts}
+            panel={panel}
+            onPanelChange={setPanel}
+            layout={layout}
+            onLayoutChange={setLayout}
             recording={recording}
-          />
-        ) : null}
-        {streaming ? (
-          <StreamBanner
-            roomId={room.id}
-            userId={userId}
-            stream={streaming}
-          />
-        ) : null}
-        {!moderator && !inChild && !e2eeEnabled ? (
-          <BreakoutJoinBanner
-            session={breakouts.session}
-            userId={userId}
-            maxParticipants={room.maxParticipants ?? 25}
-            onMove={moveToRoom}
-          />
-        ) : null}
-        {moderator && !inChild ? (
-          <BreakoutHelpNotice session={breakouts.session} />
-        ) : null}
-        {inChild && room.parentRoomId ? (
-          <BreakoutChildBar
-            roomId={room.id}
-            parentRoomId={room.parentRoomId}
-            session={breakouts.session}
-            onMove={moveToRoom}
-          />
-        ) : null}
-        {moderator && room.lobbyEnabled ? <LobbyGate roomId={room.id} /> : null}
-        {moderator ? <HandQueue /> : null}
-        {panel === "chat" ? (
-          <ChatPanel
-            roomId={room.id}
-            userId={userId}
-            allowChat={room.allowChat !== false}
-          />
-        ) : null}
-        {panel === "polls" ? (
-          <PollPanel roomId={room.id} userId={userId} moderator={moderator} />
-        ) : null}
-        {panel === "qa" ? (
-          <QaPanel roomId={room.id} userId={userId} moderator={moderator} />
-        ) : null}
-        {panel === "whiteboard" ? (
-          <WhiteboardPanel roomId={room.id} userId={userId} host={role === "host"} />
-        ) : null}
-        {panel === "people" ? (
-          <ParticipantList roomId={room.id} host={moderator} />
-        ) : null}
-        {panel === "settings" && moderator ? (
-          <RoomSettings room={room} onChange={setRoom} />
-        ) : null}
-        {panel === "breakouts" && moderator && !inChild && !breakouts.childRoom && !e2eeEnabled ? (
-          <BreakoutPanel
-            roomId={room.id}
-            session={breakouts.session}
-            loadError={breakouts.loadError}
-            onChanged={breakouts.refresh}
-            onMove={moveToRoom}
-          />
-        ) : null}
-      </div>
-      <footer className="sru-meet-bar">
-        <button
-          type="button"
-          className="sru-meet-btn"
-          aria-pressed={!localParticipant.isMicrophoneEnabled}
-          onClick={() =>
-            void localParticipant.setMicrophoneEnabled(
-              !localParticipant.isMicrophoneEnabled,
-            )
-          }
-        >
-          {localParticipant.isMicrophoneEnabled ? "Mute" : "Unmute"}
-        </button>
-        <NoiseSuppressionControl />
-        <VirtualBackgroundControl />
-        <button
-          type="button"
-          className="sru-meet-btn"
-          aria-pressed={!localParticipant.isCameraEnabled}
-          onClick={() =>
-            void localParticipant.setCameraEnabled(
-              !localParticipant.isCameraEnabled,
-            )
-          }
-        >
-          {localParticipant.isCameraEnabled ? "Stop camera" : "Start camera"}
-        </button>
-        {room.allowScreenShare !== false ? (
-          <ScreenShareButton e2eeEnabled={e2eeEnabled} />
-        ) : null}
-        <RaiseHand />
-        <Reactions userId={userId} />
-        <LayoutSwitcher layout={layout} onChange={setLayout} />
-        <button
-          type="button"
-          className="sru-meet-btn"
-          aria-pressed={panel === "polls"}
-          onClick={() => setPanel((value) => (value === "polls" ? "none" : "polls"))}
-        >
-          Poll
-        </button>
-        <button
-          type="button"
-          className="sru-meet-btn"
-          aria-pressed={panel === "qa"}
-          onClick={() => setPanel((value) => (value === "qa" ? "none" : "qa"))}
-        >
-          Q&amp;A
-        </button>
-        <button
-          type="button"
-          className="sru-meet-btn"
-          aria-pressed={panel === "whiteboard"}
-          onClick={() =>
-            setPanel((value) => (value === "whiteboard" ? "none" : "whiteboard"))
-          }
-        >
-          Board
-        </button>
-        <button
-          type="button"
-          className="sru-meet-btn"
-          aria-pressed={panel === "chat"}
-          onClick={() => setPanel((value) => (value === "chat" ? "none" : "chat"))}
-        >
-          Chat
-        </button>
-        <button
-          type="button"
-          className="sru-meet-btn"
-          aria-pressed={panel === "people"}
-          onClick={() =>
-            setPanel((value) => (value === "people" ? "none" : "people"))
-          }
-        >
-          People
-        </button>
-        {moderator ? (
-          <>
-            <button
-              type="button"
-              className="sru-meet-btn"
-              aria-pressed={panel === "settings"}
-              onClick={() =>
-                setPanel((value) => (value === "settings" ? "none" : "settings"))
-              }
-            >
-              Settings
-            </button>
-            {!inChild && !breakouts.childRoom && !e2eeEnabled ? (
-              <button
-                type="button"
-                className="sru-meet-btn"
-                aria-pressed={panel === "breakouts"}
-                onClick={() =>
-                  setPanel((value) =>
-                    value === "breakouts" ? "none" : "breakouts",
-                  )
-                }
-              >
-                Breakouts
-              </button>
-            ) : null}
-            {!e2eeEnabled ? (
-              <>
-                <RecordButton roomId={room.id} recording={recording} />
-                <StreamButton roomId={room.id} stream={streaming} />
-              </>
-            ) : null}
-            <ModerationBar roomId={room.id} />
-            <button
-              type="button"
-              className="sru-meet-btn"
-              onClick={async () => {
-                await fetch(`/api/v1/rooms/${room.id}/moderation`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ action: "lock" }),
-                });
-              }}
-            >
-              Lock
-            </button>
-            <button
-              type="button"
-              className="sru-cta-danger"
-              onClick={async () => {
+            streaming={streaming}
+            onLeave={() => {
+              livekitRoom.disconnect();
+              window.location.href = "/app";
+            }}
+            onEndMeeting={() => {
+              void (async () => {
                 await fetch(`/api/v1/rooms/${room.id}/moderation`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -501,23 +394,35 @@ export function MeetingChrome({
                 });
                 setEnded(true);
                 livekitRoom.disconnect();
-              }}
-            >
-              End meeting
-            </button>
-          </>
+              })();
+            }}
+          />
+        </div>
+        {mobileSidebarOpen ? (
+          <button
+            type="button"
+            className="absolute inset-0 z-10 cursor-pointer bg-black/50 lg:hidden"
+            aria-label="Close participants and chat"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
         ) : null}
-        <button
-          type="button"
-          className="sru-cta-danger"
-          onClick={() => {
-            livekitRoom.disconnect();
-            window.location.href = "/app";
-          }}
+        <div
+          className={[
+            "h-full w-[265px] shrink-0",
+            mobileSidebarOpen
+              ? "absolute inset-y-0 right-0 z-20 flex"
+              : "hidden",
+            desktopSidebarOpen ? "lg:relative lg:flex" : "lg:hidden",
+          ].join(" ")}
         >
-          Leave
-        </button>
-      </footer>
+          <MeetingSidebar
+            roomId={room.id}
+            userId={userId}
+            host={moderator}
+            allowChat={room.allowChat !== false}
+          />
+        </div>
+      </div>
     </div>
   );
 }

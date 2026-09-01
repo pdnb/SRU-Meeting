@@ -7,13 +7,9 @@ import { MeetingErrorState } from "@/components/meeting/MeetingErrorState";
 import { VirtualBackgroundControl } from "@/components/meeting/VirtualBackgroundControl";
 import { useNoiseSuppressionPreference } from "@/components/meeting/useNoiseSuppressionPreference";
 import { useVirtualBackgroundPreference } from "@/components/meeting/useVirtualBackgroundPreference";
+import { useTrackProcessorSupport } from "@/components/meeting/useTrackProcessorSupport";
 import { getE2eeBlockReason } from "@/lib/e2ee/support";
-import {
-  applyVirtualBackgroundToTrack,
-  isNoiseSuppressionSupported,
-  isVirtualBackgroundSupported,
-  readVirtualBackgroundPreference,
-} from "@/lib/livekit/track-processors";
+import { readVirtualBackgroundPreference } from "@/lib/livekit/track-preferences";
 
 export type PrejoinResult = {
   audio: boolean;
@@ -44,8 +40,8 @@ export function Prejoin({
   const [noiseSuppression, setNoiseSuppression] =
     useNoiseSuppressionPreference();
   const [virtualBackground] = useVirtualBackgroundPreference();
-  const noiseSupported = isNoiseSuppressionSupported();
-  const backgroundSupported = isVirtualBackgroundSupported();
+  const { noiseSuppression: noiseSupported, virtualBackground: backgroundSupported } =
+    useTrackProcessorSupport();
   const e2eeBlockReason = room.e2eeEnabled ? getE2eeBlockReason() : null;
 
   useEffect(() => {
@@ -69,6 +65,9 @@ export function Prejoin({
         previewTrackRef.current?.stop();
         previewTrackRef.current = track;
         if (backgroundSupported) {
+          const { applyVirtualBackgroundToTrack } = await import(
+            "@/lib/livekit/track-processors"
+          );
           await applyVirtualBackgroundToTrack(
             track,
             readVirtualBackgroundPreference(),
@@ -97,9 +96,14 @@ export function Prejoin({
     if (!track || !backgroundSupported || !video) {
       return;
     }
-    void applyVirtualBackgroundToTrack(track, virtualBackground).catch(() => {
-      // Preview background is best-effort before join.
-    });
+    void (async () => {
+      const { applyVirtualBackgroundToTrack } = await import(
+        "@/lib/livekit/track-processors"
+      );
+      await applyVirtualBackgroundToTrack(track, virtualBackground).catch(() => {
+        // Preview background is best-effort before join.
+      });
+    })();
   }, [virtualBackground, backgroundSupported, video]);
 
   if (e2eeBlockReason) {

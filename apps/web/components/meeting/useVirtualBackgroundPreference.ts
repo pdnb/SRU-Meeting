@@ -2,10 +2,12 @@
 
 import { useSyncExternalStore } from "react";
 import {
+  DEFAULT_VIRTUAL_BACKGROUND_CHOICE,
   readVirtualBackgroundPreference,
+  VIRTUAL_BACKGROUND_STORAGE_KEY,
   writeVirtualBackgroundPreference,
   type VirtualBackgroundChoice,
-} from "@/lib/livekit/track-processors";
+} from "@/lib/livekit/track-preferences";
 
 const VIRTUAL_BG_PREF_EVENT = "sru-virtual-bg-pref-change";
 
@@ -22,11 +24,27 @@ function subscribeVirtualBackgroundPreference(onChange: () => void) {
   };
 }
 
+let cachedSnapshot: VirtualBackgroundChoice = DEFAULT_VIRTUAL_BACKGROUND_CHOICE;
+let cachedStorageValue: string | null | undefined;
+
+function getVirtualBackgroundPreferenceSnapshot(): VirtualBackgroundChoice {
+  if (typeof window === "undefined") {
+    return DEFAULT_VIRTUAL_BACKGROUND_CHOICE;
+  }
+  const raw = window.localStorage.getItem(VIRTUAL_BACKGROUND_STORAGE_KEY);
+  if (raw === cachedStorageValue) {
+    return cachedSnapshot;
+  }
+  cachedStorageValue = raw;
+  cachedSnapshot = readVirtualBackgroundPreference();
+  return cachedSnapshot;
+}
+
 export function useVirtualBackgroundPreference() {
   const choice = useSyncExternalStore(
     subscribeVirtualBackgroundPreference,
-    () => readVirtualBackgroundPreference(),
-    () => ({ type: "none" }) as VirtualBackgroundChoice,
+    getVirtualBackgroundPreferenceSnapshot,
+    () => DEFAULT_VIRTUAL_BACKGROUND_CHOICE,
   );
 
   const setChoice = (next: VirtualBackgroundChoice) => {

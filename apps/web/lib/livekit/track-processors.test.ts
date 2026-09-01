@@ -17,16 +17,18 @@ vi.mock("@livekit/track-processors", () => ({
 import {
   NOISE_SUPPRESSION_STORAGE_KEY,
   VIRTUAL_BACKGROUND_STORAGE_KEY,
-  applyVirtualBackgroundChoice,
-  applyVirtualBackgroundToTrack,
   parseVirtualBackgroundChoice,
   readNoiseSuppressionPreference,
   readVirtualBackgroundPreference,
-  removeNoiseSuppressionFromTrack,
-  applyNoiseSuppressionToTrack,
   shouldShowBackgroundPerformanceHint,
   writeNoiseSuppressionPreference,
   writeVirtualBackgroundPreference,
+} from "./track-preferences";
+import {
+  applyVirtualBackgroundChoice,
+  applyVirtualBackgroundToTrack,
+  removeNoiseSuppressionFromTrack,
+  applyNoiseSuppressionToTrack,
 } from "./track-processors";
 
 describe("noise suppression preferences", () => {
