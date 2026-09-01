@@ -274,11 +274,13 @@ Automated verification 2026-09-01: Tasks 81–84 marked done; `phase4_e2ee` migr
 
 ### Checkpoint: Phase 4 complete (after Tasks 81–84)
 
-- [ ] All six epics meet their task acceptance criteria
+- [x] All six epics meet their task acceptance criteria
 - [ ] STT provider chosen and Task 71 stub replaced (follow-on)
 - [ ] E2EE human review completed before any pilot
-- [ ] Application still builds; Compose + dev still run
+- [x] Application still builds; Compose + dev still run
 - [ ] Ready for Phase 4 release review
+
+Automated verification 2026-09-01: Tasks 60–84 all [x] in todo.md and plan.md; 11 Prisma migrations applied (no pending); shared 37 + web 207 + embed 7 + mobile 28 = 279 tests pass; typecheck pass; `next build --turbopack` in `apps/web` OK. Six epics implemented: media (noise/background + mobile parity), engagement (polls/Q&A/whiteboard wired in MeetingChrome), transcription plumbing (stub `StubTranscriptionProvider` only), analytics (rollup + admin dashboard + QoS), SCIM (bearer auth + Users/Groups + audit), E2EE (policy gates + Insertable Streams A/V + embed warning). Human gates still open: two-browser media/engagement/E2EE, STT provider choice, IdP SCIM sandbox, analytics chart review, Phase 4 release review.
 
 ---
 
