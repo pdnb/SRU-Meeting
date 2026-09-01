@@ -3,12 +3,12 @@ import { PwaRegister } from "@/components/PwaRegister";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SRU-Conf",
+  title: "SRU-Meeting",
   description: "Self-hosted video conference",
-  applicationName: "SRU-Conf",
+  applicationName: "SRU-Meeting",
   appleWebApp: {
     capable: true,
-    title: "SRU-Conf",
+    title: "SRU-Meeting",
   },
 };
 
@@ -16,6 +16,7 @@ export const viewport: Viewport = {
   themeColor: "#0f5c56",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

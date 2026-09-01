@@ -171,6 +171,12 @@ export function MeetingChrome({
   }, [livekitRoom]);
 
   useEffect(() => {
+    if (panel !== "none") {
+      setMobileSidebarOpen(false);
+    }
+  }, [panel]);
+
+  useEffect(() => {
     let cancelled = false;
     const poll = async () => {
       const [recordingRes, streamingRes] = await Promise.all([
@@ -304,7 +310,7 @@ export function MeetingChrome({
         </p>
       ) : null}
       <div className="relative flex min-h-0 flex-1">
-        <div className="relative min-h-0 min-w-0 flex-1 pb-20">
+        <div className="relative min-h-0 min-w-0 flex-1 pb-[calc(5rem+env(safe-area-inset-bottom,0px))]">
           {layout === "grid" ? <GridView tiles={tiles} /> : null}
           {layout === "speaker" ? (
             <SpeakerView tiles={tiles} mainId={mainId} />
@@ -408,11 +414,11 @@ export function MeetingChrome({
         ) : null}
         <div
           className={[
-            "h-full w-[265px] shrink-0",
+            "h-full w-full max-w-xs shrink-0 sm:w-[265px]",
             mobileSidebarOpen
-              ? "absolute inset-y-0 right-0 z-20 flex"
+              ? "absolute inset-y-0 right-0 z-20 flex shadow-[(-8px)_0_24px_rgb(0_0_0_/_0.35)]"
               : "hidden",
-            desktopSidebarOpen ? "lg:relative lg:flex" : "lg:hidden",
+            desktopSidebarOpen ? "lg:relative lg:flex lg:shadow-none" : "lg:hidden",
           ].join(" ")}
         >
           <MeetingSidebar

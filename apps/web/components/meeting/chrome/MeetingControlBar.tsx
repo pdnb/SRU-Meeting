@@ -127,7 +127,7 @@ export function MeetingControlBar({
   }
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center px-3">
+    <div className="pointer-events-none absolute inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom,0px))] z-20 flex justify-center px-3">
       <div
         ref={moreRef}
         className="pointer-events-auto relative flex max-w-full items-center gap-2 overflow-x-auto rounded-full border border-meet-line bg-meet-panel px-3 py-2 shadow-[0_8px_24px_rgb(0_0_0_/_0.45)]"

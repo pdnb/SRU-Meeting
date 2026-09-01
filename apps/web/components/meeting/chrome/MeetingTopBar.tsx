@@ -33,13 +33,14 @@ export function MeetingTopBar({
   onToggleSidebar: () => void;
 }) {
   return (
-    <header className="flex h-[44px] shrink-0 items-center gap-3 border-b border-meet-line bg-meet-panel px-3 text-sm text-meet-ink">
+    <header className="flex h-[44px] shrink-0 items-center gap-2 border-b border-meet-line bg-meet-panel px-3 text-sm text-meet-ink sm:gap-3">
       <p className="min-w-0 flex-1 truncate font-medium">{title}</p>
       <div className="flex shrink-0 items-center gap-3 text-meet-muted">
         {recordingActive ? (
           <span className="inline-flex items-center gap-1 text-red-400" role="status">
             <span className="h-2 w-2 rounded-full bg-red-500" aria-hidden />
-            Rec
+            <span className="hidden sm:inline">Rec</span>
+            <span className="sr-only">Recording</span>
           </span>
         ) : null}
         {e2eeEnabled ? (
@@ -49,14 +50,20 @@ export function MeetingTopBar({
           </span>
         ) : null}
         {locked ? (
-          <span className="text-xs uppercase tracking-wide">Locked</span>
+          <span className="hidden text-xs uppercase tracking-wide sm:inline">
+            Locked
+          </span>
         ) : null}
         <span className="inline-flex items-center gap-1" title="Participants">
           <Users className="h-3.5 w-3.5" aria-hidden />
           {participantCount}
         </span>
       </div>
-      <div className="flex items-center gap-1" role="group" aria-label="Layout">
+      <div
+        className="hidden items-center gap-1 lg:flex"
+        role="group"
+        aria-label="Layout"
+      >
         <ControlIconButton
           label="Grid layout"
           pressed={layout === "grid"}
