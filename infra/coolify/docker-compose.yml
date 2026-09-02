@@ -87,47 +87,39 @@ services:
   livekit:
     image: livekit/livekit-server:v1.13.6
     restart: unless-stopped
-    command: ["--config", "/etc/livekit.yaml", "--bind", "0.0.0.0"]
+    # Prefer LIVEKIT_CONFIG env (compose substitutes ${...}) over a content bind mount.
+    command: ["--bind", "0.0.0.0"]
     environment:
       LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:?sru}
       LIVEKIT_API_SECRET: ${SERVICE_PASSWORD_64_LIVEKIT:?}
-      SERVER_PUBLIC_IP: ${SERVER_PUBLIC_IP:?}
-      TURN_PASSWORD: ${SERVICE_PASSWORD_TURN:?}
-    volumes:
-      - type: bind
-        source: ./livekit.yaml
-        target: /etc/livekit.yaml
-        content: |
-          port: 7880
-          log_level: info
-          bind_addresses:
-            - "0.0.0.0"
-          redis:
-            address: redis:6379
-          keys:
-            sru: ${SERVICE_PASSWORD_64_LIVEKIT}
-          rtc:
-            tcp_port: 7881
-            # Keep this range small: Docker maps each UDP port individually and
-            # 50000-60000 can hang compose startup for a very long time.
-            port_range_start: 50000
-            port_range_end: 50100
-            use_external_ip: true
-            node_ip: ${SERVER_PUBLIC_IP}
-            allow_tcp_fallback: true
-            turn_servers:
-              - host: ${SERVER_PUBLIC_IP}
-                port: 3478
-                protocol: tcp
-                username: sru
-                credential: ${SERVICE_PASSWORD_TURN}
-              - host: ${SERVER_PUBLIC_IP}
-                port: 3478
-                protocol: udp
-                username: sru
-                credential: ${SERVICE_PASSWORD_TURN}
-          turn:
-            enabled: false
+      LIVEKIT_CONFIG: |
+        port: 7880
+        log_level: info
+        bind_addresses:
+          - "0.0.0.0"
+        redis:
+          address: redis:6379
+        keys:
+          sru: "${SERVICE_PASSWORD_64_LIVEKIT}"
+        rtc:
+          tcp_port: 7881
+          port_range_start: 50000
+          port_range_end: 50100
+          use_external_ip: true
+          allow_tcp_fallback: true
+          turn_servers:
+            - host: "${SERVER_PUBLIC_IP}"
+              port: 3478
+              protocol: tcp
+              username: sru
+              credential: "${SERVICE_PASSWORD_TURN}"
+            - host: "${SERVER_PUBLIC_IP}"
+              port: 3478
+              protocol: udp
+              username: sru
+              credential: "${SERVICE_PASSWORD_TURN}"
+        turn:
+          enabled: false
     ports:
       - "7880:7880"
       - "7881:7881"
@@ -138,11 +130,12 @@ services:
       coturn:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:7880/"]
+      # livekit-server Alpine image includes busybox wget
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:7880/ || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 6
-      start_period: 20s
+      retries: 12
+      start_period: 40s
 
   egress:
     image: livekit/egress:v1.10.0
