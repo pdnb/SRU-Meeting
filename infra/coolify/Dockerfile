@@ -10,6 +10,7 @@ FROM base AS builder
 WORKDIR /app
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web/package.json apps/web/
+COPY apps/web/prisma apps/web/prisma
 COPY packages/shared/package.json packages/shared/
 COPY packages/embed/package.json packages/embed/
 RUN pnpm install --frozen-lockfile
