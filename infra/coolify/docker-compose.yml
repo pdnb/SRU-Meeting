@@ -1,10 +1,13 @@
 # SRU-Meeting production stack for Coolify (Linux host).
-# Deploy path in Coolify: infra/coolify/docker-compose.yml
+# Deploy path in Coolify: /infra/coolify/docker-compose.yml  (leading slash required by API)
 #
 # Before first deploy:
 #   1. Set SERVER_PUBLIC_IP in Coolify env (coturn + LiveKit ICE).
-#   2. Assign domains in Coolify UI (see docs/coolify-deployment.md).
-#   3. Create MinIO buckets after first boot (see doc).
+#   2. Assign domains in Coolify UI or via deploy-api.ps1.
+#   3. Create MinIO buckets after first boot (see docs/coolify-deployment.md).
+#
+# Note: web.build.context must be "." (repo root). Coolify passes
+# --project-directory=<clone root>; "context: ../.." incorrectly resolves to "/".
 
 name: sru-meeting
 
@@ -187,7 +190,9 @@ services:
 
   web:
     build:
-      context: ../..
+      # Coolify runs compose with --project-directory=<repo root>, so "." is the monorepo root.
+      # Do NOT use "../.." here — that resolves above the repo and breaks the web image build.
+      context: .
       dockerfile: infra/coolify/Dockerfile
     restart: unless-stopped
     environment:

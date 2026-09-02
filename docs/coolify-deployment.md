@@ -53,7 +53,41 @@ Host ports (ไม่ผ่าน Traefik)
 
 ---
 
-## ขั้นตอน deploy (แบบ all-in-one Compose)
+## Deploy via API
+
+สำหรับ deploy โดยไม่คลิก UI — ใช้สคริปต์ [`infra/coolify/deploy-api.ps1`](../infra/coolify/deploy-api.ps1):
+
+1. สร้าง API token ใน Coolify → **Keys & Tokens**
+2. ตั้ง DNS A record ของ web + LiveKit ชี้ `SERVER_PUBLIC_IP` และเปิด firewall ตามตารางด้านบน
+3. รัน:
+
+```powershell
+$env:COOLIFY_URL = "https://coolify.example.com"
+$env:COOLIFY_TOKEN = "<api-token>"
+.\infra\coolify\deploy-api.ps1 `
+  -ProjectName "sru-meeting" `
+  -ServerPublicIp "x.x.x.x" `
+  -WebDomain "https://meeting.example.ac.th:3000" `
+  -LivekitDomain "https://livekit.example.ac.th:7880" `
+  -OrgAdminEmails "admin@org.ac.th"
+```
+
+สคริปต์จะ:
+
+1. `GET /projects`, `GET /servers` — เลือก project/server
+2. `POST /applications/public` — `build_pack=dockercompose`, compose ที่ `infra/coolify/docker-compose.yml`
+3. `PATCH` domains ของ `web` / `livekit`
+4. ตั้ง `SERVER_PUBLIC_IP`, `LIVEKIT_API_KEY`, `ORG_ADMIN_EMAILS`, `TURN_REALM`
+5. `POST /deploy` แล้ว poll จนเสร็จ
+6. สร้าง scheduled tasks (webhook tick + retention)
+
+หลัง deploy สำเร็จ ให้สร้าง MinIO bucket ตามขั้นตอนด้านล่าง (SSH ครั้งเดียว)
+
+Template env: [`infra/coolify/.env.coolify.example`](../infra/coolify/.env.coolify.example)
+
+---
+
+## ขั้นตอน deploy (แบบ all-in-one Compose — UI)
 
 ### 1. เพิ่ม Server ใน Coolify
 
@@ -148,6 +182,8 @@ Webhook retry และ retention ต้องถูกเรียกเป็�
 
 ใช้ค่า `INTERNAL_CRON_SECRET` เดียวกับ `SERVICE_PASSWORD_64_CRON` ที่ Coolify สร้าง
 
+(ถ้าใช้ `deploy-api.ps1` สคริปต์จะสร้าง scheduled tasks ให้อัตโนมัติหลัง deploy)
+
 ---
 
 ## ทางเลือก: แยก Web ออกจาก Media stack
@@ -226,6 +262,7 @@ curl -s -o /dev/null -w "%{http_code}" https://meeting.example.com/
 |------|--------|
 | [`infra/coolify/docker-compose.yml`](../infra/coolify/docker-compose.yml) | Compose สำหรับ Coolify |
 | [`infra/coolify/Dockerfile`](../infra/coolify/Dockerfile) | Build Next.js monorepo |
+| [`infra/coolify/deploy-api.ps1`](../infra/coolify/deploy-api.ps1) | Deploy ผ่าน Coolify REST API |
 | [`infra/docker-compose.yml`](../infra/docker-compose.yml) | Local dev เท่านั้น |
 | [`infra/helm/sru-meeting/`](../infra/helm/sru-meeting/) | ทางเลือก Kubernetes |
 
