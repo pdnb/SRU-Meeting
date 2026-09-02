@@ -23,7 +23,7 @@
 |-------|----------|--------|
 | 80, 443 | TCP | Coolify Traefik → Next.js web (`https://meeting.example.com`) |
 | 7880, 7881 | TCP | LiveKit signaling + ICE/TCP (`wss://livekit.example.com`) |
-| 50000–60000 | UDP | LiveKit WebRTC media |
+| 50000–50100 | UDP | LiveKit WebRTC media (keep range small for Docker) |
 | 3478, 5349 | TCP + UDP | coturn TURN/STUN |
 | 49160–49200 | UDP | coturn relay |
 
