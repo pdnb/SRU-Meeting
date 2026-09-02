@@ -47,7 +47,7 @@ Docker network (Compose stack)
    └── egress ──► livekit, minio, redis
 
 Host ports (ไม่ผ่าน Traefik)
-   ├── UDP 50000–60000  → LiveKit ICE
+   ├── UDP 50000–50100  → LiveKit ICE
    └── 3478/5349/49160–49200 → coturn
 ```
 
@@ -233,7 +233,7 @@ pnpm build:desktop
 | อาการ | สาเหตุที่พบบ่อย | แก้ไข |
 |-------|-----------------|-------|
 | Sign-in ไม่ได้ | `AUTH_SECRET` / `AUTH_URL` ผิด | ตรวจ domain และ magic var |
-| เข้าห้องได้ แต่ไม่มีเสียง/ภาพ | UDP 50000–60000 ถูก block | เปิด firewall + ตรวจ `SERVER_PUBLIC_IP` |
+| เข้าห้องได้ แต่ไม่มีเสียง/ภาพ | UDP 50000–50100 ถูก block | เปิด firewall + ตรวจ `SERVER_PUBLIC_IP` |
 | LiveKit token error | key/secret ไม่ตรง | `LIVEKIT_API_KEY` + `SERVICE_PASSWORD_64_LIVEKIT` ต้องตรงทั้ง web, livekit, egress |
 | Recording ไม่ upload | ไม่มี bucket | รันขั้นตอนสร้าง MinIO bucket |
 | TURN ล้มเหลว | `SERVER_PUBLIC_IP` ผิด | ใช้ public IP จริง ไม่ใช่ private |

@@ -168,7 +168,7 @@ if (-not $SkipDnsCheck) {
   }
   Write-Host ""
   Write-Host "Firewall checklist on $ServerPublicIp (must be open):" -ForegroundColor Yellow
-  Write-Host "  TCP 80,443 | TCP 7880,7881 | UDP 50000-60000 | TCP+UDP 3478,5349 | UDP 49160-49200"
+  Write-Host "  TCP 80,443 | TCP 7880,7881 | UDP 50000-50100 | TCP+UDP 3478,5349 | UDP 49160-49200"
 }
 
 # --- Discover project ---
@@ -429,7 +429,7 @@ Write-Host '  docker exec -it <minio> mc alias set local http://127.0.0.1:9000 "
 Write-Host '  docker exec -it <minio> mc mb local/sru-chat --ignore-existing'
 Write-Host '  docker exec -it <minio> mc anonymous set none local/sru-chat'
 Write-Host ""
-Write-Host "Firewall reminder: UDP 50000-60000 + TURN ports required for A/V."
+Write-Host "Firewall reminder: UDP 50000-50100 + TURN ports required for A/V."
 Write-Host "DNS reminder: point meeting + livekit A records to $ServerPublicIp"
 
 [pscustomobject]@{
