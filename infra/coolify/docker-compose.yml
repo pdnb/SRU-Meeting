@@ -1,0 +1,230 @@
+# SRU-Meeting production stack for Coolify (Linux host).
+# Deploy path in Coolify: infra/coolify/docker-compose.yml
+#
+# Before first deploy:
+#   1. Set SERVER_PUBLIC_IP in Coolify env (coturn + LiveKit ICE).
+#   2. Assign domains in Coolify UI (see docs/coolify-deployment.md).
+#   3. Create MinIO buckets after first boot (see doc).
+
+name: sru-meeting
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sru
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES:?}
+      POSTGRES_DB: sru_conf
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sru -d sru_conf"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${SERVICE_USER_MINIO:?}
+      MINIO_ROOT_PASSWORD: ${SERVICE_PASSWORD_MINIO:?}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  coturn:
+    image: coturn/coturn:4.17
+    restart: unless-stopped
+    command:
+      - "-n"
+      - "--log-file=stdout"
+      - "--listening-port=3478"
+      - "--tls-listening-port=5349"
+      - "--fingerprint"
+      - "--lt-cred-mech"
+      - "--user=sru:${SERVICE_PASSWORD_TURN:?}"
+      - "--realm=${TURN_REALM:-sru.meeting}"
+      - "--no-cli"
+      - "--no-multicast-peers"
+      - "--external-ip=${SERVER_PUBLIC_IP:?}"
+      - "--min-port=49160"
+      - "--max-port=49200"
+    ports:
+      - "3478:3478"
+      - "3478:3478/udp"
+      - "5349:5349"
+      - "5349:5349/udp"
+      - "49160-49200:49160-49200/udp"
+    healthcheck:
+      test: ["CMD", "turnutils_stunclient", "127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  livekit:
+    image: livekit/livekit-server:v1.13.6
+    restart: unless-stopped
+    command: ["--config", "/etc/livekit.yaml", "--bind", "0.0.0.0"]
+    environment:
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:?sru}
+      LIVEKIT_API_SECRET: ${SERVICE_PASSWORD_64_LIVEKIT:?}
+      SERVER_PUBLIC_IP: ${SERVER_PUBLIC_IP:?}
+      TURN_PASSWORD: ${SERVICE_PASSWORD_TURN:?}
+    volumes:
+      - type: bind
+        source: ./livekit.yaml
+        target: /etc/livekit.yaml
+        content: |
+          port: 7880
+          log_level: info
+          bind_addresses:
+            - "0.0.0.0"
+          redis:
+            address: redis:6379
+          keys:
+            sru: ${SERVICE_PASSWORD_64_LIVEKIT}
+          rtc:
+            tcp_port: 7881
+            port_range_start: 50000
+            port_range_end: 60000
+            use_external_ip: true
+            node_ip: ${SERVER_PUBLIC_IP}
+            allow_tcp_fallback: true
+            turn_servers:
+              - host: ${SERVER_PUBLIC_IP}
+                port: 3478
+                protocol: tcp
+                username: sru
+                credential: ${SERVICE_PASSWORD_TURN}
+              - host: ${SERVER_PUBLIC_IP}
+                port: 3478
+                protocol: udp
+                username: sru
+                credential: ${SERVICE_PASSWORD_TURN}
+          turn:
+            enabled: false
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "50000-60000:50000-60000/udp"
+    depends_on:
+      redis:
+        condition: service_healthy
+      coturn:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:7880/"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+  egress:
+    image: livekit/egress:v1.10.0
+    restart: unless-stopped
+    cap_add:
+      - SYS_ADMIN
+    shm_size: "1g"
+    environment:
+      EGRESS_CONFIG_FILE: /etc/egress.yaml
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:?sru}
+      LIVEKIT_API_SECRET: ${SERVICE_PASSWORD_64_LIVEKIT:?}
+      MINIO_USER: ${SERVICE_USER_MINIO:?}
+      MINIO_PASSWORD: ${SERVICE_PASSWORD_MINIO:?}
+    volumes:
+      - type: bind
+        source: ./egress.yaml
+        target: /etc/egress.yaml
+        content: |
+          log_level: info
+          api_key: ${LIVEKIT_API_KEY}
+          api_secret: ${SERVICE_PASSWORD_64_LIVEKIT}
+          ws_url: ws://livekit:7880
+          insecure: true
+          health_port: 8081
+          redis:
+            address: redis:6379
+          s3:
+            access_key: ${SERVICE_USER_MINIO}
+            secret: ${SERVICE_PASSWORD_MINIO}
+            region: us-east-1
+            endpoint: http://minio:9000
+            bucket: sru-chat
+            force_path_style: true
+    depends_on:
+      redis:
+        condition: service_healthy
+      livekit:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8081/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 40s
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/coolify/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://sru:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/sru_conf
+      AUTH_SECRET: ${SERVICE_REALBASE64_64_AUTH:?}
+      AUTH_URL: ${SERVICE_URL_WEB:?}
+      LIVEKIT_URL: wss://${SERVICE_FQDN_LIVEKIT:?}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:?sru}
+      LIVEKIT_API_SECRET: ${SERVICE_PASSWORD_64_LIVEKIT:?}
+      S3_ENDPOINT: http://minio:9000
+      S3_INTERNAL_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${SERVICE_USER_MINIO:?}
+      S3_SECRET_KEY: ${SERVICE_PASSWORD_MINIO:?}
+      S3_BUCKET: sru-chat
+      S3_RECORDINGS_BUCKET: sru-chat
+      S3_REGION: us-east-1
+      INTERNAL_CRON_SECRET: ${SERVICE_PASSWORD_64_CRON:?}
+      ORG_ADMIN_EMAILS: ${ORG_ADMIN_EMAILS:-}
+      EMBED_ALLOWED_ORIGINS: ${EMBED_ALLOWED_ORIGINS:-}
+    expose:
+      - "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      livekit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+volumes:
+  postgres_data:
+  minio_data:

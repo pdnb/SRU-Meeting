@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  isDesktopShell,
+  showDesktopNotification,
+} from "@/lib/desktop-bridge";
 
 type Knock = {
   userId: string;
@@ -11,6 +15,34 @@ type Knock = {
 
 export function LobbyGate({ roomId }: { roomId: string }) {
   const [knocks, setKnocks] = useState<Knock[]>([]);
+  const knownKnockIds = useRef<Set<string>>(new Set());
+  const initialLoad = useRef(true);
+
+  async function refreshKnocks() {
+    const res = await fetch(`/api/v1/rooms/${roomId}/lobby`);
+    if (!res.ok) return;
+    const json = (await res.json()) as { data: Knock[] };
+    const next = json.data;
+
+    if (isDesktopShell()) {
+      if (!initialLoad.current) {
+        for (const knock of next) {
+          if (!knownKnockIds.current.has(knock.userId)) {
+            void showDesktopNotification(
+              "Someone is waiting to join",
+              knock.name ?? knock.email,
+            );
+          }
+        }
+      }
+      for (const knock of next) {
+        knownKnockIds.current.add(knock.userId);
+      }
+      initialLoad.current = false;
+    }
+
+    setKnocks(next);
+  }
 
   async function decide(userId: string, decision: "admit" | "deny") {
     await fetch(`/api/v1/rooms/${roomId}/lobby`, {
@@ -18,22 +50,15 @@ export function LobbyGate({ roomId }: { roomId: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, decision }),
     });
-    const res = await fetch(`/api/v1/rooms/${roomId}/lobby`);
-    if (!res.ok) return;
-    const json = (await res.json()) as { data: Knock[] };
-    setKnocks(json.data);
+    await refreshKnocks();
   }
 
   useEffect(() => {
-    async function refresh() {
-      const res = await fetch(`/api/v1/rooms/${roomId}/lobby`);
-      if (!res.ok) return;
-      const json = (await res.json()) as { data: Knock[] };
-      setKnocks(json.data);
-    }
-    void refresh();
+    knownKnockIds.current = new Set();
+    initialLoad.current = true;
+    void refreshKnocks();
     const id = window.setInterval(() => {
-      void refresh();
+      void refreshKnocks();
     }, 2000);
     return () => window.clearInterval(id);
   }, [roomId]);

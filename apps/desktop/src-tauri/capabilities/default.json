@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "identifier": "ac.th.sru.meeting",
+  "description": "SRU Meeting desktop shell capabilities",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-set-focus",
+    "core:window:allow-navigate",
+    "core:webview:allow-navigate",
+    "shell:allow-open",
+    "notification:default",
+    "deep-link:default"
+  ]
+}

@@ -1,8 +1,8 @@
 # SRU-Meeting
 
-แพลตฟอร์มประชุมออนไลน์แบบ **Self-hosted** สำหรับองค์กรที่ต้องการควบคุมข้อมูลและโครงสร้างพื้นฐานเอง รองรับการเข้าร่วมผ่านเว็บ มือถือ และการฝัง (embed) พร้อม SSO, Public API และ Webhook สำหรับเชื่อมต่อระบบเดิม
+แพลตฟอร์มประชุมออนไลน์แบบ **Self-hosted** สำหรับองค์กรที่ต้องการควบคุมข้อมูลและโครงสร้างพื้นฐานเอง รองรับการเข้าร่วมผ่านเว็บ แอปเดสก์ท็อป (Windows) มือถือ และการฝัง (embed) พร้อม SSO, Public API และ Webhook สำหรับเชื่อมต่อระบบเดิม
 
-**SRU-Meeting** is a self-hosted video conference platform built on [LiveKit](https://livekit.io/). Organizations run media and metadata on their own infrastructure while users join from the web, mobile apps, or embedded iframes.
+**SRU-Meeting** is a self-hosted video conference platform built on [LiveKit](https://livekit.io/). Organizations run media and metadata on their own infrastructure while users join from the web, a Windows desktop app, mobile apps, or embedded iframes.
 
 ---
 
@@ -21,19 +21,21 @@
 | **Admin & compliance** | Org RBAC, audit log, retention & deletion, analytics dashboard, QoS reporting |
 | **Media polish** | Krisp noise suppression, virtual backgrounds, optional E2EE (Insertable Streams) |
 | **Mobile** | Expo app (dev build) with grid, mute, PiP, CallKit/ConnectionService |
-| **Deployment** | Docker Compose for local/small org; optional Helm charts for Kubernetes |
+| **Desktop** | Tauri thin shell (WebView2, Windows v1) — tray, deep links, native lobby notifications, SSO via system browser |
+| **Deployment** | Docker Compose for local/small org; Coolify guide; optional Helm charts for Kubernetes |
 
 ---
 
 ## Architecture
 
 ```text
-Clients (Next.js web · Expo mobile · embed iframe)
+Clients (Next.js web · Tauri desktop · Expo mobile · embed iframe)
         │ HTTPS / WSS / WebRTC
         ▼
 Edge (Nginx / Traefik)          — optional locally; Compose ports are enough for dev
         │
         ├── Next.js Route Handlers ── PostgreSQL, Redis, MinIO (S3)
+        │       └── /api/auth/desktop/* — SSO ticket exchange for desktop shell
         └── LiveKit SFU + coturn   ── Redis (room state)
                 └── Egress worker  ── recordings → MinIO
 ```
@@ -44,6 +46,7 @@ Edge (Nginx / Traefik)          — optional locally; Compose ports are enough f
 | `packages/shared` | Zod schemas and shared types (`@sru/shared`) |
 | `packages/embed` | Embed handshake helpers (`@sru/embed`) |
 | `apps/mobile` | Expo / React Native client |
+| `apps/desktop` | Tauri 2 thin shell (WebView2) — tray, deep links, desktop SSO bridge |
 | `apps/worker-transcribe` | Transcription worker stub (STT provider TBD) |
 | `infra/` | Docker Compose, LiveKit/coturn/egress config, Helm charts, load tests |
 
@@ -117,7 +120,9 @@ Open [http://localhost:3000](http://localhost:3000). Register a local account, c
 | Command | Description |
 |---------|-------------|
 | `pnpm dev` | Start Next.js dev server (`apps/web`, Turbopack) |
+| `pnpm dev:desktop` | Tauri dev shell (WebView2 → local web; requires Rust + WebView2) |
 | `pnpm build` | Production build |
+| `pnpm build:desktop` | Windows MSI per org (set `SRU_SERVER_URL`) |
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | TypeScript check (all packages) |
 | `pnpm test` | Unit tests (all packages) |
@@ -133,6 +138,7 @@ SRU-Meeting/
 ├── apps/
 │   ├── web/                 # Next.js app (main product)
 │   ├── mobile/              # Expo / React Native
+│   ├── desktop/             # Tauri / Windows thin shell
 │   └── worker-transcribe/   # Transcription worker
 ├── packages/
 │   ├── shared/              # @sru/shared — Zod contracts
@@ -163,6 +169,7 @@ API authentication uses `X-Api-Key`, `X-Api-Timestamp`, and `X-Api-Signature` he
 | Environment | Guide |
 |-------------|-------|
 | **Local / small org** | [infra/README.md](infra/README.md) — Docker Compose (default) |
+| **Coolify (self-hosted PaaS)** | [docs/coolify-deployment.md](docs/coolify-deployment.md) — Docker Compose Build Pack |
 | **Kubernetes** | [infra/helm/sru-meeting/README.md](infra/helm/sru-meeting/README.md) — Helm for web, Postgres, Redis, MinIO; separate charts for LiveKit, coturn, egress |
 | **Load testing** | [infra/loadtest/README.md](infra/loadtest/README.md) |
 
@@ -182,6 +189,36 @@ pnpm --filter mobile start
 ```
 
 Requires a **development build** (`expo-dev-client`); LiveKit WebRTC does not run in Expo Go. See [apps/mobile/README.md](apps/mobile/README.md).
+
+---
+
+## Desktop app (Windows)
+
+Tauri thin shell (WebView2) for org-deployed SRU Meeting. The app loads your organization's web UI and adds:
+
+- System tray (show/hide, sign in, quit)
+- Native lobby knock notifications (web → Tauri bridge)
+- Deep links: `sru-meeting://rooms/{id}` and SSO callback `sru-meeting://auth/callback?ticket=…`
+- SSO via system browser → one-time ticket → WebView session
+
+LiveKit secrets stay on the server — the desktop bundle only knows `{SRU_SERVER_URL}`.
+
+**Prerequisites:** Rust stable, Microsoft C++ Build Tools, WebView2 Runtime (preinstalled on Windows 11), plus the running web app and Compose stack for A/V tests.
+
+```powershell
+pnpm dev                    # web API (separate terminal)
+pnpm dev:desktop            # Tauri shell → WebView2 loads /app
+pnpm build:desktop          # per-org MSI (set SRU_SERVER_URL first)
+```
+
+Per-org builds bake the server URL at compile time:
+
+```powershell
+$env:SRU_SERVER_URL = "https://meeting.company.ac.th"
+pnpm build:desktop
+```
+
+See [apps/desktop/README.md](apps/desktop/README.md) for SSO flow, deep links, icon generation, and the WebView2 A/V validation checklist.
 
 ---
 
@@ -211,6 +248,7 @@ GitHub Actions runs on push/PR to `main`: lint, typecheck, unit tests. CI does *
 | [tasks/plan.md](tasks/plan.md) | Phased implementation plan |
 | [tasks/todo.md](tasks/todo.md) | Task checklist |
 | [infra/README.md](infra/README.md) | Compose stack, ports, credentials, Windows notes |
+| [docs/coolify-deployment.md](docs/coolify-deployment.md) | Deploy on Coolify v4 (Compose Build Pack) |
 
 ---
 
@@ -222,6 +260,7 @@ GitHub Actions runs on push/PR to `main`: lint, typecheck, unit tests. CI does *
 - **Storage:** MinIO (S3-compatible) for chat files and recordings
 - **Validation:** Zod 4 (`@sru/shared`)
 - **Mobile:** Expo, `@livekit/react-native`
+- **Desktop:** Tauri 2 (WebView2 thin shell, Windows v1)
 - **Whiteboard:** tldraw
 - **Package manager:** pnpm workspaces
 

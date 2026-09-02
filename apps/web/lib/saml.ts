@@ -1,9 +1,7 @@
 import "server-only";
 
-import { randomBytes } from "node:crypto";
 import { SAML } from "@node-saml/node-saml";
-
-const tickets = new Map<string, { userId: string; exp: number }>();
+import { consumeAuthTicket, issueAuthTicket } from "@/lib/auth-ticket";
 
 export type SamlProfile = {
   email: string;
@@ -71,18 +69,11 @@ export function parseSamlProfile(profile: Record<string, unknown>): SamlProfile 
 }
 
 export function issueSamlTicket(userId: string): string {
-  const id = randomBytes(16).toString("hex");
-  tickets.set(id, { userId, exp: Date.now() + 60_000 });
-  return id;
+  return issueAuthTicket(userId);
 }
 
 export function consumeSamlTicket(id: string): string | null {
-  const row = tickets.get(id);
-  tickets.delete(id);
-  if (!row || row.exp < Date.now()) {
-    return null;
-  }
-  return row.userId;
+  return consumeAuthTicket(id);
 }
 
 export function rejectInvalidSamlResponse(): {

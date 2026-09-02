@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  desktopTicketSignInAction,
   ldapLoginAction,
   loginAction,
   samlTicketSignInAction,
@@ -34,6 +35,18 @@ export default function LoginPage() {
       return;
     }
     void samlTicketSignInAction(ticket).then((result) => {
+      if (result?.error) {
+        setError(result.error);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const ticket = new URLSearchParams(window.location.search).get("desktopTicket");
+    if (!ticket) {
+      return;
+    }
+    void desktopTicketSignInAction(ticket).then((result) => {
       if (result?.error) {
         setError(result.error);
       }

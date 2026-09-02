@@ -13,6 +13,7 @@ import { prisma } from "@/lib/db";
 import { authenticateLdap } from "@/lib/ldap";
 import { verifyPassword } from "@/lib/password";
 import { consumeSamlTicket } from "@/lib/saml";
+import { consumeAuthTicket } from "@/lib/auth-ticket";
 import { configuredOidcProviders, groupsFromProfile, ldapIsConfigured } from "@/lib/sso";
 import { upsertFederatedUser } from "@/lib/sso-users";
 
@@ -49,11 +50,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { type: "email" },
         password: { type: "password" },
         samlTicket: { type: "text" },
+        desktopTicket: { type: "text" },
         ldapUsername: { type: "text" },
       },
       authorize: async (credentials) => {
         if (credentials?.samlTicket && typeof credentials.samlTicket === "string") {
           const userId = consumeSamlTicket(credentials.samlTicket);
+          if (!userId) {
+            return null;
+          }
+          const user = await prisma.user.findUnique({ where: { id: userId } });
+          if (!user || user.deletedAt) {
+            return null;
+          }
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            orgRole: user.orgRole,
+          };
+        }
+
+        if (credentials?.desktopTicket && typeof credentials.desktopTicket === "string") {
+          const userId = consumeAuthTicket(credentials.desktopTicket);
           if (!userId) {
             return null;
           }

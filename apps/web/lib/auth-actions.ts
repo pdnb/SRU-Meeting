@@ -107,6 +107,22 @@ export async function samlTicketSignInAction(
   }
 }
 
+export async function desktopTicketSignInAction(
+  ticket: string,
+): Promise<{ error: string } | void> {
+  try {
+    await signIn("credentials", {
+      desktopTicket: ticket,
+      redirectTo: "/app",
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { error: "Desktop sign-in failed." };
+    }
+    throw error;
+  }
+}
+
 function emptyToUndefined(value: FormDataEntryValue | null): string | undefined {
   if (typeof value !== "string") {
     return undefined;

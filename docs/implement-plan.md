@@ -67,7 +67,7 @@
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│  Clients: Web (React) │ iOS │ Android │ Electron Desktop │
+│  Clients: Web (React) │ iOS │ Android │ Tauri Desktop (Windows) │
 └───────────────┬─────────────────────────────────────────┘
                 │ HTTPS / WSS / WebRTC (SRTP-DTLS)
 ┌───────────────▼─────────────────────────────────────────┐
