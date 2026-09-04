@@ -128,10 +128,7 @@ export function MeetingControlBar({
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom,0px))] z-20 flex justify-center px-3">
-      <div
-        ref={moreRef}
-        className="pointer-events-auto relative flex max-w-full items-center gap-2 overflow-x-auto rounded-full border border-meet-line bg-meet-panel px-3 py-2 shadow-[0_8px_24px_rgb(0_0_0_/_0.45)]"
-      >
+      <div ref={moreRef} className="pointer-events-auto relative max-w-full">
         {moreOpen ? (
           <div
             id={moreId}
@@ -225,76 +222,78 @@ export function MeetingControlBar({
           </div>
         ) : null}
 
-        <ControlIconButton
-          label={micOn ? "Mute microphone" : "Unmute microphone"}
-          danger={!micOn}
-          pressed={!micOn}
-          onClick={() => void localParticipant.setMicrophoneEnabled(!micOn)}
-        >
-          {micOn ? (
-            <Mic className="h-5 w-5" aria-hidden />
-          ) : (
-            <MicOff className="h-5 w-5" aria-hidden />
-          )}
-        </ControlIconButton>
-        <ControlIconButton
-          label={cameraOn ? "Stop camera" : "Start camera"}
-          danger={!cameraOn}
-          pressed={!cameraOn}
-          onClick={() => void localParticipant.setCameraEnabled(!cameraOn)}
-        >
-          {cameraOn ? (
-            <Video className="h-5 w-5" aria-hidden />
-          ) : (
-            <VideoOff className="h-5 w-5" aria-hidden />
-          )}
-        </ControlIconButton>
-        {room.allowScreenShare !== false ? (
+        <div className="flex max-w-full items-center gap-2 overflow-x-auto rounded-full border border-meet-line bg-meet-panel px-3 py-2 shadow-[0_8px_24px_rgb(0_0_0_/_0.45)]">
           <ControlIconButton
-            label={isScreenShareEnabled ? "Stop sharing" : "Share screen"}
-            pressed={isScreenShareEnabled}
-            disabled={!shareSupported}
-            onClick={() =>
-              void localParticipant.setScreenShareEnabled(!isScreenShareEnabled)
-            }
+            label={micOn ? "Mute microphone" : "Unmute microphone"}
+            danger={!micOn}
+            pressed={!micOn}
+            onClick={() => void localParticipant.setMicrophoneEnabled(!micOn)}
           >
-            <MonitorUp className="h-5 w-5" aria-hidden />
+            {micOn ? (
+              <Mic className="h-5 w-5" aria-hidden />
+            ) : (
+              <MicOff className="h-5 w-5" aria-hidden />
+            )}
           </ControlIconButton>
-        ) : null}
-        <ControlIconButton
-          label={handRaised ? "Lower hand" : "Raise hand"}
-          pressed={handRaised}
-          onClick={() => {
-            const next = handRaised ? null : new Date().toISOString();
-            void localParticipant.setMetadata(
-              serializeHandMetadata({ handRaisedAt: next }),
-            );
-          }}
-        >
-          <Hand className="h-5 w-5" aria-hidden />
-        </ControlIconButton>
-        <ControlIconButton
-          label="More"
-          pressed={moreOpen}
-          aria-haspopup="menu"
-          aria-expanded={moreOpen}
-          aria-controls={moreId}
-          onClick={() => setMoreOpen((value) => !value)}
-        >
-          <MoreHorizontal className="h-5 w-5" aria-hidden />
-        </ControlIconButton>
-        {moderator ? (
           <ControlIconButton
-            label="End meeting for everyone"
-            danger
-            onClick={onEndMeeting}
+            label={cameraOn ? "Stop camera" : "Start camera"}
+            danger={!cameraOn}
+            pressed={!cameraOn}
+            onClick={() => void localParticipant.setCameraEnabled(!cameraOn)}
           >
-            <CircleStop className="h-5 w-5" aria-hidden />
+            {cameraOn ? (
+              <Video className="h-5 w-5" aria-hidden />
+            ) : (
+              <VideoOff className="h-5 w-5" aria-hidden />
+            )}
           </ControlIconButton>
-        ) : null}
-        <ControlIconButton label="Leave meeting" danger onClick={onLeave}>
-          <PhoneOff className="h-5 w-5" aria-hidden />
-        </ControlIconButton>
+          {room.allowScreenShare !== false ? (
+            <ControlIconButton
+              label={isScreenShareEnabled ? "Stop sharing" : "Share screen"}
+              pressed={isScreenShareEnabled}
+              disabled={!shareSupported}
+              onClick={() =>
+                void localParticipant.setScreenShareEnabled(!isScreenShareEnabled)
+              }
+            >
+              <MonitorUp className="h-5 w-5" aria-hidden />
+            </ControlIconButton>
+          ) : null}
+          <ControlIconButton
+            label={handRaised ? "Lower hand" : "Raise hand"}
+            pressed={handRaised}
+            onClick={() => {
+              const next = handRaised ? null : new Date().toISOString();
+              void localParticipant.setMetadata(
+                serializeHandMetadata({ handRaisedAt: next }),
+              );
+            }}
+          >
+            <Hand className="h-5 w-5" aria-hidden />
+          </ControlIconButton>
+          <ControlIconButton
+            label="More"
+            pressed={moreOpen}
+            aria-haspopup="menu"
+            aria-expanded={moreOpen}
+            aria-controls={moreId}
+            onClick={() => setMoreOpen((value) => !value)}
+          >
+            <MoreHorizontal className="h-5 w-5" aria-hidden />
+          </ControlIconButton>
+          {moderator ? (
+            <ControlIconButton
+              label="End meeting for everyone"
+              danger
+              onClick={onEndMeeting}
+            >
+              <CircleStop className="h-5 w-5" aria-hidden />
+            </ControlIconButton>
+          ) : null}
+          <ControlIconButton label="Leave meeting" danger onClick={onLeave}>
+            <PhoneOff className="h-5 w-5" aria-hidden />
+          </ControlIconButton>
+        </div>
       </div>
     </div>
   );

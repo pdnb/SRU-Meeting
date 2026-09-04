@@ -2,6 +2,7 @@ import "server-only";
 
 import type { OrgRole } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { ensurePersonalRoom } from "@/lib/personal-room";
 import { orgRoleForNewUser } from "@/lib/rbac";
 import { mapGroupsToOrgRole } from "@/lib/sso";
 
@@ -44,6 +45,9 @@ export async function upsertFederatedUser(input: {
         deletedAt: null,
       },
     });
+    if (!updated.isGuest) {
+      await ensurePersonalRoom(updated.id);
+    }
     return {
       id: updated.id,
       email: updated.email,
@@ -64,6 +68,7 @@ export async function upsertFederatedUser(input: {
       ldapDn: input.ldapDn ?? null,
     },
   });
+  await ensurePersonalRoom(created.id);
   return {
     id: created.id,
     email: created.email,

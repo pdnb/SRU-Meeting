@@ -5,6 +5,7 @@ import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
+import { ensurePersonalRoom } from "@/lib/personal-room";
 import { orgRoleForNewUser } from "@/lib/rbac";
 
 export async function registerAction(
@@ -25,7 +26,7 @@ export async function registerAction(
     return { error: "An account with that email already exists." };
   }
 
-  await prisma.user.create({
+  const created = await prisma.user.create({
     data: {
       email,
       name: parsed.data.name ?? null,
@@ -34,6 +35,8 @@ export async function registerAction(
       orgRole: orgRoleForNewUser(email),
     },
   });
+
+  await ensurePersonalRoom(created.id);
 
   try {
     await signIn("credentials", {

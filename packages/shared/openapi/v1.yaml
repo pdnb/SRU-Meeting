@@ -145,6 +145,52 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
+  /api/v1/me/personal-room:
+    get:
+      tags: [rooms]
+      summary: Get or create the caller's permanent Personal Room
+      operationId: getMyPersonalRoom
+      security:
+        - session: []
+        - apiKey: []
+      responses:
+        "200":
+          description: Personal room for the caller
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalRoomSchema"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /api/v1/personal-rooms/{slug}:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 64
+          pattern: "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"
+    get:
+      tags: [rooms]
+      summary: Resolve a Personal Room vanity slug
+      operationId: getPersonalRoomBySlug
+      responses:
+        "200":
+          description: Personal room metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalRoomSchema"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/v1/rooms/{id}/tokens:
     parameters:
       - $ref: "#/components/parameters/RoomId"
@@ -1105,11 +1151,38 @@ components:
         ownerId:
           type: string
           minLength: 1
+        kind:
+          $ref: "#/components/schemas/RoomKindSchema"
+        slug:
+          type: string
+          nullable: true
         e2eeEnabled:
           type: boolean
           description: >
             When true, camera and microphone are encrypted client-side. Recording,
             streaming, and breakouts return 409 E2EE_INCOMPATIBLE.
+    RoomKindSchema:
+      type: string
+      enum: [adhoc, personal]
+    PersonalRoomSchema:
+      type: object
+      required: [id, name, slug, joinPath]
+      properties:
+        id:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        slug:
+          type: string
+          minLength: 2
+          maxLength: 64
+          pattern: "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"
+        joinPath:
+          type: string
+          minLength: 1
     RoomParticipantSchema:
       type: object
       required: [id, roomId, userId, role, banned, lobbyStatus]

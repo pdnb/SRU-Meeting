@@ -29,19 +29,42 @@ import {
 const hostId = "user-host";
 const guestId = "user-guest";
 
-function roomRow(overrides: Record<string, unknown> = {}) {
+function roomRow(
+  overrides: Partial<{
+    id: string;
+    name: string;
+    createdAt: Date;
+    ownerId: string;
+    kind: "adhoc" | "personal";
+    slug: string | null;
+    passwordHash: string | null;
+    lobbyEnabled: boolean;
+    locked: boolean;
+    finishedAt: Date | null;
+    allowGuests: boolean;
+    signedInOnly: boolean;
+    allowedEmailDomains: string[];
+    allowScreenShare: boolean;
+    allowChat: boolean;
+    maxParticipants: number;
+    chatRetentionDays: number | null;
+    parentRoomId: string | null;
+  }> = {},
+) {
   return {
     id: "room-1",
     name: "Seminar",
     createdAt: new Date("2026-08-31T00:00:00.000Z"),
     ownerId: hostId,
+    kind: "adhoc" as const,
+    slug: null,
     passwordHash: null,
     lobbyEnabled: false,
     locked: false,
     finishedAt: null,
-    allowGuests: false,
-    signedInOnly: true,
-    allowedEmailDomains: [],
+    allowGuests: true,
+    signedInOnly: false,
+    allowedEmailDomains: [] as string[],
     allowScreenShare: true,
     allowChat: true,
     maxParticipants: 25,
@@ -96,7 +119,7 @@ describe("room API helpers", () => {
     vi.clearAllMocks();
   });
 
-  it("creates a room owned by the session user", async () => {
+  it("creates a room owned by the session user with guests allowed", async () => {
     const created = roomRow();
     prisma.room.create.mockResolvedValue(created);
 
@@ -104,11 +127,16 @@ describe("room API helpers", () => {
 
     expect(room.ownerId).toBe(hostId);
     expect(room.name).toBe("Seminar");
+    expect(room.allowGuests).toBe(true);
+    expect(room.signedInOnly).toBe(false);
     expect(prisma.room.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           ownerId: hostId,
           name: "Seminar",
+          kind: "adhoc",
+          allowGuests: true,
+          signedInOnly: false,
         }),
       }),
     );
@@ -124,6 +152,7 @@ describe("room API helpers", () => {
       expect.objectContaining({
         where: expect.objectContaining({
           parentRoomId: null,
+          kind: "adhoc",
           OR: expect.arrayContaining([
             { ownerId: guestId },
             {
@@ -152,5 +181,18 @@ describe("room API helpers", () => {
       ok: false,
       status: 403,
     });
+  });
+
+  it("rejects closing a personal room", async () => {
+    prisma.room.findUnique.mockResolvedValue(
+      roomRow({ kind: "personal", slug: "somchai.jai" }),
+    );
+
+    await expect(closeRoomForOwner(hostId, "room-1")).resolves.toMatchObject({
+      ok: false,
+      status: 409,
+      code: "CANNOT_CLOSE_PERSONAL",
+    });
+    expect(prisma.room.update).not.toHaveBeenCalled();
   });
 });

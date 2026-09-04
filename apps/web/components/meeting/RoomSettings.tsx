@@ -1,7 +1,9 @@
 "use client";
 
 import type { Room } from "@sru/shared";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { guestJoinPath } from "@/lib/guest-join";
+import { guestsAreAllowed } from "@/lib/join-policy";
 
 export function RoomSettings({
   room,
@@ -15,6 +17,22 @@ export function RoomSettings({
     (room.allowedEmailDomains ?? []).join(", "),
   );
   const [status, setStatus] = useState<string | null>(null);
+  const [guestUrl, setGuestUrl] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const guestsEnabled = guestsAreAllowed({
+    allowGuests: Boolean(room.allowGuests),
+    signedInOnly: Boolean(room.signedInOnly),
+  });
+  const joinPath = guestJoinPath(room);
+
+  useEffect(() => {
+    if (!guestsEnabled) {
+      setGuestUrl("");
+      return;
+    }
+    setGuestUrl(`${window.location.origin}${joinPath}`);
+  }, [guestsEnabled, joinPath]);
 
   async function patch(body: Record<string, unknown>) {
     const res = await fetch(`/api/v1/rooms/${room.id}`, {
@@ -154,13 +172,34 @@ export function RoomSettings({
             Remove password
           </button>
         </div>
-        {room.allowGuests && !room.signedInOnly ? (
-          <p className="text-sm text-zinc-300">
-            Guest link:{" "}
-            <a href={`/join/${room.id}`} className="underline">
-              /join/{room.id}
-            </a>
-          </p>
+        {guestsEnabled ? (
+          <div className="flex flex-col gap-2 text-sm text-zinc-300">
+            <p className="break-all font-mono text-xs text-zinc-200">
+              {guestUrl || joinPath}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <a href={joinPath} className="underline">
+                Open guest link
+              </a>
+              <button
+                type="button"
+                className="sru-cta-secondary"
+                onClick={async () => {
+                  try {
+                    const url =
+                      guestUrl || `${window.location.origin}${joinPath}`;
+                    await navigator.clipboard.writeText(url);
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 2000);
+                  } catch {
+                    setStatus("Could not copy to clipboard.");
+                  }
+                }}
+              >
+                {copied ? "Copied" : "Copy link"}
+              </button>
+            </div>
+          </div>
         ) : (
           <p className="text-sm text-zinc-400">
             Guest links stay off until guests are allowed and signed-in-only is

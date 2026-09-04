@@ -27,6 +27,8 @@ export function toRoomDto(room: {
   name: string;
   createdAt: Date;
   ownerId: string;
+  kind?: "adhoc" | "personal";
+  slug?: string | null;
   passwordHash?: string | null;
   lobbyEnabled?: boolean;
   locked?: boolean;
@@ -45,6 +47,8 @@ export function toRoomDto(room: {
     name: room.name,
     createdAt: room.createdAt.toISOString(),
     ownerId: room.ownerId,
+    kind: room.kind ?? "adhoc",
+    slug: room.slug ?? null,
     hasPassword: Boolean(room.passwordHash),
     lobbyEnabled: room.lobbyEnabled,
     locked: room.locked,
@@ -102,6 +106,9 @@ export async function createRoomForUser(
     data: {
       name: parsed.name,
       ownerId: userId,
+      kind: "adhoc",
+      allowGuests: true,
+      signedInOnly: false,
       maxParticipants: DEFAULT_MAX_PARTICIPANTS,
       participants: {
         create: {
@@ -120,6 +127,7 @@ export async function listRoomsForUser(userId: string): Promise<Room[]> {
   const rooms = await prisma.room.findMany({
     where: {
       parentRoomId: null,
+      kind: "adhoc",
       OR: [
         { ownerId: userId },
         {
@@ -160,10 +168,21 @@ export async function countAdmitted(roomId: string): Promise<number> {
 export async function closeRoomForOwner(
   userId: string,
   roomId: string,
-): Promise<{ ok: true } | { ok: false; status: 403 | 404; code: string; message: string }> {
+): Promise<
+  | { ok: true }
+  | { ok: false; status: 403 | 404 | 409; code: string; message: string }
+> {
   const room = await getRoomRecord(roomId);
   if (!room) {
     return { ok: false, status: 404, code: "NOT_FOUND", message: "Room not found" };
+  }
+  if (room.kind === "personal") {
+    return {
+      ok: false,
+      status: 409,
+      code: "CANNOT_CLOSE_PERSONAL",
+      message: "Personal rooms cannot be closed",
+    };
   }
   if (!userMayCloseRoom(userId, room)) {
     return {

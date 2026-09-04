@@ -14,15 +14,20 @@ export {
 
 export {
   LobbyStatusSchema,
+  RoomKindSchema,
   RoomParticipantSchema,
   RoomRoleSchema,
   RoomSchema,
+  PersonalRoomSlugSchema,
+  PersonalRoomSchema,
   CreateRoomRequestSchema,
   UpdateRoomSettingsSchema,
   type LobbyStatus,
+  type RoomKind,
   type Room,
   type RoomParticipant,
   type RoomRole,
+  type PersonalRoom,
   type CreateRoomRequest,
   type UpdateRoomSettings,
 } from "./room";

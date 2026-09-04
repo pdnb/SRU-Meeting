@@ -4,6 +4,7 @@ import type { User } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
 import { deleteUserData } from "@/lib/deletion";
 import { prisma } from "@/lib/db";
+import { ensurePersonalRoom } from "@/lib/personal-room";
 import { orgRoleForNewUser } from "@/lib/rbac";
 import {
   orgRoleFromScimGroups,
@@ -126,6 +127,8 @@ export async function createScimUser(input: {
       scimGroups: [],
     },
   });
+
+  await ensurePersonalRoom(created.id);
 
   await writeAudit({
     action: "scim.user.create",

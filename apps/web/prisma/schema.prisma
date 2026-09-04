@@ -21,6 +21,11 @@ enum RoomRole {
   participant
 }
 
+enum RoomKind {
+  adhoc
+  personal
+}
+
 enum LobbyStatus {
   pending
   admitted
@@ -137,12 +142,14 @@ model Room {
   createdAt           DateTime          @default(now())
   ownerId             String
   owner               User              @relation(fields: [ownerId], references: [id])
+  kind                RoomKind          @default(adhoc)
+  slug                String?           @unique
   passwordHash        String?
   lobbyEnabled        Boolean           @default(false)
   locked              Boolean           @default(false)
   finishedAt          DateTime?
-  allowGuests         Boolean           @default(false)
-  signedInOnly        Boolean           @default(true)
+  allowGuests         Boolean           @default(true)
+  signedInOnly        Boolean           @default(false)
   allowedEmailDomains String[]          @default([])
   allowScreenShare    Boolean           @default(true)
   allowChat           Boolean           @default(true)
@@ -164,6 +171,8 @@ model Room {
   questions           Question[]
   whiteboardSessions  WhiteboardSession[]
   qosReports          QosReport[]
+
+  @@index([ownerId, kind])
 }
 
 model BreakoutSession {

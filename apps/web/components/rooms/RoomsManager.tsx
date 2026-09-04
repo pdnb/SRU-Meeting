@@ -1,21 +1,34 @@
 "use client";
 
-import type { Room } from "@sru/shared";
+import type { PersonalRoom, Room } from "@sru/shared";
 import { useState } from "react";
+import { PersonalRoomCard } from "@/components/rooms/PersonalRoomCard";
 import { Badge } from "@/components/ui/Badge";
 import { IconRoom } from "@/components/ui/icons";
+import { guestJoinPath } from "@/lib/guest-join";
+import { guestsAreAllowed } from "@/lib/join-policy";
+
+function roomGuestsEnabled(room: Room): boolean {
+  return guestsAreAllowed({
+    allowGuests: Boolean(room.allowGuests),
+    signedInOnly: Boolean(room.signedInOnly),
+  });
+}
 
 export function RoomsManager({
   initialRooms,
   canCreate = true,
+  personalRoom = null,
 }: {
   initialRooms: Room[];
   canCreate?: boolean;
+  personalRoom?: PersonalRoom | null;
 }) {
   const [rooms, setRooms] = useState(initialRooms);
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   async function refresh() {
     const res = await fetch("/api/v1/rooms");
@@ -25,6 +38,19 @@ export function RoomsManager({
     }
     const json = (await res.json()) as { data: Room[] };
     setRooms(json.data);
+  }
+
+  async function copyGuestLink(room: Room) {
+    try {
+      const url = `${window.location.origin}${guestJoinPath(room)}`;
+      await navigator.clipboard.writeText(url);
+      setCopiedId(room.id);
+      window.setTimeout(() => {
+        setCopiedId((current) => (current === room.id ? null : current));
+      }, 2000);
+    } catch {
+      setError("Could not copy to clipboard.");
+    }
   }
 
   const openRooms = rooms.filter((room) => !room.finishedAt);
@@ -45,6 +71,8 @@ export function RoomsManager({
           </p>
         ) : null}
       </div>
+
+      <PersonalRoomCard initial={personalRoom} />
 
       {canCreate ? (
         <form
@@ -133,7 +161,9 @@ export function RoomsManager({
                   <p className="mt-1 text-caption text-muted">
                     {room.finishedAt
                       ? "This room has ended."
-                      : "Ready for participants to join."}
+                      : roomGuestsEnabled(room)
+                        ? "Ready for participants — copy the guest link anytime."
+                        : "Ready for signed-in participants to join."}
                   </p>
                 </div>
                 {!room.finishedAt ? (
@@ -141,22 +171,33 @@ export function RoomsManager({
                     <a href={`/app/rooms/${room.id}`} className="sru-cta">
                       Join
                     </a>
-                    <button
-                      type="button"
-                      className="sru-cta-secondary"
-                      onClick={async () => {
-                        const res = await fetch(`/api/v1/rooms/${room.id}`, {
-                          method: "DELETE",
-                        });
-                        if (!res.ok) {
-                          setError("Only the host can close this room.");
-                          return;
-                        }
-                        await refresh();
-                      }}
-                    >
-                      Close
-                    </button>
+                    {roomGuestsEnabled(room) ? (
+                      <button
+                        type="button"
+                        className="sru-cta-secondary"
+                        onClick={() => void copyGuestLink(room)}
+                      >
+                        {copiedId === room.id ? "Copied" : "Copy link"}
+                      </button>
+                    ) : null}
+                    {room.kind !== "personal" ? (
+                      <button
+                        type="button"
+                        className="sru-cta-secondary"
+                        onClick={async () => {
+                          const res = await fetch(`/api/v1/rooms/${room.id}`, {
+                            method: "DELETE",
+                          });
+                          if (!res.ok) {
+                            setError("Only the host can close this room.");
+                            return;
+                          }
+                          await refresh();
+                        }}
+                      >
+                        Close
+                      </button>
+                    ) : null}
                   </div>
                 ) : null}
               </article>

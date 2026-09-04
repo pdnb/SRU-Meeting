@@ -28,6 +28,8 @@ const PHASE1_PATHS = [
   "/api/v1/rooms/{id}/whiteboard",
   "/api/v1/keys",
   "/api/v1/webhooks",
+  "/api/v1/me/personal-room",
+  "/api/v1/personal-rooms/{slug}",
 ] as const;
 
 const REQUIRED_OPERATIONS: Record<string, string[]> = {
@@ -42,6 +44,8 @@ const REQUIRED_OPERATIONS: Record<string, string[]> = {
   "/api/v1/rooms/{id}/whiteboard": ["post", "get", "delete"],
   "/api/v1/keys": ["get", "post"],
   "/api/v1/webhooks": ["get", "post"],
+  "/api/v1/me/personal-room": ["get"],
+  "/api/v1/personal-rooms/{slug}": ["get"],
 };
 
 /** Zod schema names from Task 4 (packages/shared/src/*.ts). */
@@ -54,6 +58,8 @@ const ZOD_SCHEMA_NAMES = new Set([
   "RoomParticipantSchema",
   "RoomRoleSchema",
   "RoomSchema",
+  "RoomKindSchema",
+  "PersonalRoomSchema",
   "TokenRequestSchema",
   "TokenResponseSchema",
   "UserSchema",
